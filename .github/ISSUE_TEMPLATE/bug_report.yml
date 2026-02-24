@@ -1,0 +1,132 @@
+name: 🐛 Hata Bildirimi
+description: Bir hata veya sorun bildirin
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Hata bildirimi için teşekkürler! Lütfen aşağıdaki bilgileri doldurun.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Hatanın Açıklaması
+      description: Hatayı kısaca açıklayın
+      placeholder: Ne oldu?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Tekrar Etme Adımları
+      description: Hatayı tekrar oluşturmak için adımları yazın
+      placeholder: |
+        1. Şu kodu çalıştırdım...
+        2. Şu parametreleri gönderdim...
+        3. Şu hatayı aldım...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Beklenen Davranış
+      description: Ne olmasını bekliyordunuz?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Gerçekleşen Davranış
+      description: Bunun yerine ne oldu?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: bank
+    attributes:
+      label: Banka / Ödeme Kuruluşu
+      description: Hangi banka ile ilgili?
+      options:
+        - Akbank
+        - Akbank (Nestpay)
+        - Alternatif Bank
+        - Anadolubank
+        - Denizbank
+        - QNB Finansbank
+        - Finansbank (Nestpay)
+        - Garanti BBVA
+        - Halkbank
+        - ING Bank
+        - İş Bankası
+        - Şekerbank
+        - TEB
+        - Türkiye Finans
+        - Vakıfbank
+        - Yapı Kredi
+        - Ziraat Bankası
+        - Kuveyt Türk
+        - Vakıf Katılım
+        - Iyzico
+        - Sipay
+        - QNBpay
+        - ParamPos
+        - PayBull
+        - Moka
+        - Diğer
+    validations:
+      required: true
+
+  - type: dropdown
+    id: operation
+    attributes:
+      label: İşlem Tipi
+      options:
+        - Satış
+        - 3D Secure Satış
+        - İptal
+        - İade
+        - BIN Sorgulama
+        - Taksit Sorgulama
+        - Diğer
+
+  - type: input
+    id: php-version
+    attributes:
+      label: PHP Versiyonu
+      placeholder: "8.3"
+    validations:
+      required: true
+
+  - type: input
+    id: laravel-version
+    attributes:
+      label: Laravel Versiyonu
+      placeholder: "11.x (veya Laravel kullanılmıyor)"
+    validations:
+      required: true
+
+  - type: input
+    id: package-version
+    attributes:
+      label: SanalPos Paket Versiyonu
+      placeholder: "1.0.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Hata Logu / Stack Trace
+      description: Varsa hata mesajını veya stack trace'i yapıştırın
+      render: shell
+
+  - type: textarea
+    id: code
+    attributes:
+      label: Kod Örneği
+      description: Hatayı oluşturan kod örneğini paylaşın (hassas bilgileri maskelemeyi unutmayın!)
+      render: php

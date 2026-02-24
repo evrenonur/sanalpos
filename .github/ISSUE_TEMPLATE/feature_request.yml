@@ -1,0 +1,57 @@
+name: 🚀 Özellik İsteği
+description: Yeni bir özellik veya iyileştirme önerin
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Özellik öneriniz için teşekkürler! Lütfen aşağıdaki bilgileri doldurun.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Özellik Açıklaması
+      description: Önerdiğiniz özelliği açıklayın
+      placeholder: Hangi özelliğin eklenmesini istiyorsunuz?
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Çözdüğü Problem
+      description: Bu özellik hangi sorunu çözecek?
+      placeholder: Şu anda ... yapamıyorum / ... ile zorluk yaşıyorum
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Önerilen Çözüm
+      description: Nasıl çalışmasını hayal ediyorsunuz?
+      placeholder: |
+        ```php
+        // Örnek kullanım
+        $result = SanalPos::yeniMetod(...);
+        ```
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Özellik Tipi
+      options:
+        - Yeni banka / ödeme kuruluşu desteği
+        - Yeni işlem tipi
+        - Mevcut özellik iyileştirmesi
+        - Performans iyileştirmesi
+        - Dokümantasyon
+        - Diğer
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Katkıda bulunmak ister misiniz?
+      options:
+        - label: Bu özelliği kendim geliştirip PR göndermek istiyorum

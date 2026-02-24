@@ -1,0 +1,49 @@
+name: 🏦 Yeni Banka Talebi
+description: Yeni bir banka veya ödeme kuruluşu desteği isteyin
+title: "[Bank]: "
+labels: ["new-bank"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Yeni banka desteği talebi için teşekkürler!
+
+  - type: input
+    id: bank-name
+    attributes:
+      label: Banka / Ödeme Kuruluşu Adı
+      placeholder: "Örn: Enpara"
+    validations:
+      required: true
+
+  - type: textarea
+    id: api-docs
+    attributes:
+      label: API Dokümantasyonu
+      description: Bankanın API dokümantasyon linki veya bilgileri
+      placeholder: https://...
+
+  - type: checkboxes
+    id: operations
+    attributes:
+      label: Desteklenmesi Gereken İşlemler
+      options:
+        - label: Satış
+        - label: 3D Secure Satış
+        - label: İptal
+        - label: İade
+        - label: BIN Sorgulama
+        - label: Taksit Sorgulama
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Ek Bilgiler
+      description: Test hesabı, sandbox bilgileri veya notlar
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Katkıda bulunmak ister misiniz?
+      options:
+        - label: Bu bankayı kendim entegre edip PR göndermek istiyorum
