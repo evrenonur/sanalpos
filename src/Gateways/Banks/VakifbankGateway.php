@@ -3,26 +3,26 @@
 namespace EvrenOnur\SanalPos\Gateways\Banks;
 
 use EvrenOnur\SanalPos\Contracts\VirtualPOSServiceInterface;
-use EvrenOnur\SanalPos\Enums\ResponseStatu;
-use EvrenOnur\SanalPos\Enums\SaleQueryResponseStatu;
-use EvrenOnur\SanalPos\Enums\SaleResponseStatu;
-use EvrenOnur\SanalPos\Helpers\StringHelper;
-use EvrenOnur\SanalPos\Models\AdditionalInstallmentQueryRequest;
-use EvrenOnur\SanalPos\Models\AdditionalInstallmentQueryResponse;
-use EvrenOnur\SanalPos\Models\AllInstallmentQueryRequest;
-use EvrenOnur\SanalPos\Models\AllInstallmentQueryResponse;
-use EvrenOnur\SanalPos\Models\BINInstallmentQueryRequest;
-use EvrenOnur\SanalPos\Models\BINInstallmentQueryResponse;
-use EvrenOnur\SanalPos\Models\CancelRequest;
-use EvrenOnur\SanalPos\Models\CancelResponse;
-use EvrenOnur\SanalPos\Models\RefundRequest;
-use EvrenOnur\SanalPos\Models\RefundResponse;
-use EvrenOnur\SanalPos\Models\Sale3DResponseRequest;
-use EvrenOnur\SanalPos\Models\SaleQueryRequest;
-use EvrenOnur\SanalPos\Models\SaleQueryResponse;
-use EvrenOnur\SanalPos\Models\SaleRequest;
-use EvrenOnur\SanalPos\Models\SaleResponse;
-use EvrenOnur\SanalPos\Models\VirtualPOSAuth;
+use EvrenOnur\SanalPos\Enums\ResponseStatus;
+use EvrenOnur\SanalPos\Enums\SaleQueryResponseStatus;
+use EvrenOnur\SanalPos\Enums\SaleResponseStatus;
+use EvrenOnur\SanalPos\Support\StringHelper;
+use EvrenOnur\SanalPos\DTOs\Requests\AdditionalInstallmentQueryRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\AdditionalInstallmentQueryResponse;
+use EvrenOnur\SanalPos\DTOs\Requests\AllInstallmentQueryRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\AllInstallmentQueryResponse;
+use EvrenOnur\SanalPos\DTOs\Requests\BINInstallmentQueryRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\BINInstallmentQueryResponse;
+use EvrenOnur\SanalPos\DTOs\Requests\CancelRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\CancelResponse;
+use EvrenOnur\SanalPos\DTOs\Requests\RefundRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\RefundResponse;
+use EvrenOnur\SanalPos\DTOs\Requests\Sale3DResponse;
+use EvrenOnur\SanalPos\DTOs\Requests\SaleQueryRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\SaleQueryResponse;
+use EvrenOnur\SanalPos\DTOs\Requests\SaleRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
+use EvrenOnur\SanalPos\DTOs\MerchantAuth;
 use GuzzleHttp\Client;
 
 class VakifbankGateway implements VirtualPOSServiceInterface
@@ -35,31 +35,31 @@ class VakifbankGateway implements VirtualPOSServiceInterface
 
     private string $url3DLive = 'https://3dsecure.vakifbank.com.tr:4443/MPIAPI/MPI_Enrollment.aspx';
 
-    public function sale(SaleRequest $request, VirtualPOSAuth $auth): SaleResponse
+    public function sale(SaleRequest $request, MerchantAuth $auth): SaleResponse
     {
-        if ($request->payment3D?->confirm === true) {
+        if ($request->payment_3d?->confirm === true) {
             return $this->sale3D($request, $auth);
         }
 
-        $response = new SaleResponse(orderNumber: $request->orderNumber);
+        $response = new SaleResponse(order_number: $request->order_number);
 
-        $amount = StringHelper::formatAmount($request->saleInfo->amount);
-        $installment = $request->saleInfo->installment > 1 ? $request->saleInfo->installment : 0;
-        $expiry = $request->saleInfo->cardExpiryDateYear . str_pad($request->saleInfo->cardExpiryDateMonth, 2, '0', STR_PAD_LEFT);
+        $amount = StringHelper::formatAmount($request->sale_info->amount);
+        $installment = $request->sale_info->installment > 1 ? $request->sale_info->installment : 0;
+        $expiry = $request->sale_info->card_expiry_year . str_pad($request->sale_info->card_expiry_month, 2, '0', STR_PAD_LEFT);
 
         $xmlParts = [
-            'MerchantId' => $auth->merchantID,
-            'Password' => $auth->merchantPassword,
-            'TerminalNo' => $auth->merchantUser,
+            'MerchantId' => $auth->merchant_id,
+            'Password' => $auth->merchant_password,
+            'TerminalNo' => $auth->merchant_user,
             'TransactionType' => 'Sale',
             'TransactionId' => '',
             'CurrencyAmount' => $amount,
-            'CurrencyCode' => (string) $request->saleInfo->currency->value,
-            'Pan' => $request->saleInfo->cardNumber,
-            'Cvv' => $request->saleInfo->cardCVV,
+            'CurrencyCode' => (string) $request->sale_info->currency->value,
+            'Pan' => $request->sale_info->card_number,
+            'Cvv' => $request->sale_info->card_cvv,
             'Expiry' => $expiry,
-            'OrderId' => $request->orderNumber,
-            'ClientIp' => $request->customerIPAddress,
+            'OrderId' => $request->order_number,
+            'ClientIp' => $request->customer_ip_address,
             'TransactionDeviceSource' => '0',
         ];
 
@@ -68,62 +68,62 @@ class VakifbankGateway implements VirtualPOSServiceInterface
         }
 
         $xml = StringHelper::toXml($xmlParts, 'VposRequest');
-        $url = $auth->testPlatform ? $this->urlAPITest : $this->urlAPILive;
+        $url = $auth->test_platform ? $this->urlAPITest : $this->urlAPILive;
         $resp = $this->prmStrRequest($xml, $url);
         $dic = StringHelper::xmlToDictionary($resp, 'VposResponse');
 
-        $response->privateResponse = $dic;
+        $response->private_response = $dic;
 
         if (($dic['ResultCode'] ?? '') === '0000') {
-            $response->statu = SaleResponseStatu::Success;
+            $response->status = SaleResponseStatus::Success;
             $response->message = 'İşlem başarılı';
-            $response->transactionId = $dic['TransactionId'] ?? '';
+            $response->transaction_id = $dic['TransactionId'] ?? '';
         } else {
-            $response->statu = SaleResponseStatu::Error;
+            $response->status = SaleResponseStatus::Error;
             $response->message = $dic['ResultDetail'] ?? 'İşlem sırasında bir hata oluştu';
         }
 
         return $response;
     }
 
-    private function sale3D(SaleRequest $request, VirtualPOSAuth $auth): SaleResponse
+    private function sale3D(SaleRequest $request, MerchantAuth $auth): SaleResponse
     {
-        $response = new SaleResponse(orderNumber: $request->orderNumber);
+        $response = new SaleResponse(order_number: $request->order_number);
 
-        $amount = StringHelper::formatAmount($request->saleInfo->amount);
-        $installment = $request->saleInfo->installment > 1 ? (string) $request->saleInfo->installment : '';
-        $expDate = substr((string) $request->saleInfo->cardExpiryDateYear, 2) .
-            str_pad($request->saleInfo->cardExpiryDateMonth, 2, '0', STR_PAD_LEFT);
+        $amount = StringHelper::formatAmount($request->sale_info->amount);
+        $installment = $request->sale_info->installment > 1 ? (string) $request->sale_info->installment : '';
+        $expDate = substr((string) $request->sale_info->card_expiry_year, 2) .
+            str_pad($request->sale_info->card_expiry_month, 2, '0', STR_PAD_LEFT);
 
         $req = [
-            'MerchantId' => $auth->merchantID,
-            'MerchantPassword' => $auth->merchantPassword,
+            'MerchantId' => $auth->merchant_id,
+            'MerchantPassword' => $auth->merchant_password,
             'VerifyEnrollmentRequestId' => bin2hex(random_bytes(16)),
-            'Pan' => $request->saleInfo->cardNumber,
+            'Pan' => $request->sale_info->card_number,
             'ExpiryDate' => $expDate,
             'PurchaseAmount' => $amount,
-            'Currency' => (string) $request->saleInfo->currency->value,
-            'SuccessUrl' => $request->payment3D->returnURL,
-            'FailureUrl' => $request->payment3D->returnURL,
-            'SessionInfo' => $request->orderNumber,
+            'Currency' => (string) $request->sale_info->currency->value,
+            'SuccessUrl' => $request->payment_3d->return_url,
+            'FailureUrl' => $request->payment_3d->return_url,
+            'SessionInfo' => $request->order_number,
         ];
 
         if (! empty($installment)) {
             $req['InstallmentCount'] = $installment;
         }
 
-        $url3D = $auth->testPlatform ? $this->url3DTest : $this->url3DLive;
+        $url3D = $auth->test_platform ? $this->url3DTest : $this->url3DLive;
         $resp = $this->formRequest($req, $url3D);
         $dic = StringHelper::xmlToDictionary($resp);
 
-        $response->privateResponse = $dic;
+        $response->private_response = $dic;
 
         $status = $dic['Message']['VERes']['Status'] ?? $dic['IPaySecure']['Message']['VERes']['Status'] ?? '';
 
         if ($status === 'Y') {
             $pareq = $dic['Message']['VERes']['PaReq'] ?? $dic['IPaySecure']['Message']['VERes']['PaReq'] ?? '';
             $acsUrl = $dic['Message']['VERes']['ACSUrl'] ?? $dic['IPaySecure']['Message']['VERes']['ACSUrl'] ?? '';
-            $termUrl = $request->payment3D->returnURL;
+            $termUrl = $request->payment_3d->return_url;
             $md = $req['VerifyEnrollmentRequestId'];
 
             $html = '<html><body onload="document.frm.submit();">';
@@ -133,31 +133,31 @@ class VakifbankGateway implements VirtualPOSServiceInterface
             $html .= '<input type="hidden" name="MD" value="' . htmlspecialchars($md) . '">';
             $html .= '</form></body></html>';
 
-            $response->statu = SaleResponseStatu::RedirectHTML;
+            $response->status = SaleResponseStatus::RedirectHTML;
             $response->message = $html;
         } else {
-            $response->statu = SaleResponseStatu::Error;
+            $response->status = SaleResponseStatus::Error;
             $response->message = 'Bu kart 3D Secure ile kullanılamaz';
         }
 
         return $response;
     }
 
-    public function sale3DResponse(Sale3DResponseRequest $request, VirtualPOSAuth $auth): SaleResponse
+    public function sale3DResponse(Sale3DResponse $request, MerchantAuth $auth): SaleResponse
     {
         $response = new SaleResponse;
-        $response->privateResponse = ['response_1' => $request->responseArray];
+        $response->private_response = ['response_1' => $request->responseArray];
 
         $status = $request->responseArray['Status'] ?? '';
 
         if ($status !== 'Y') {
-            $response->statu = SaleResponseStatu::Error;
+            $response->status = SaleResponseStatus::Error;
             $response->message = '3D doğrulaması başarısız';
 
             return $response;
         }
 
-        $orderId = $request->responseArray['SessionInfo'] ?? $request->responseArray['orderNumber'] ?? '';
+        $orderId = $request->responseArray['SessionInfo'] ?? $request->responseArray['order_number'] ?? '';
         $eci = $request->responseArray['Eci'] ?? '';
         $cavv = $request->responseArray['Cavv'] ?? '';
         $mpiTransactionId = $request->responseArray['VerifyEnrollmentRequestId'] ?? '';
@@ -171,9 +171,9 @@ class VakifbankGateway implements VirtualPOSServiceInterface
         }
 
         $xmlParts = [
-            'MerchantId' => $auth->merchantID,
-            'Password' => $auth->merchantPassword,
-            'TerminalNo' => $auth->merchantUser,
+            'MerchantId' => $auth->merchant_id,
+            'Password' => $auth->merchant_password,
+            'TerminalNo' => $auth->merchant_user,
             'TransactionType' => 'Sale',
             'TransactionId' => '',
             'CurrencyAmount' => $amount,
@@ -194,47 +194,47 @@ class VakifbankGateway implements VirtualPOSServiceInterface
         }
 
         $xml = StringHelper::toXml($xmlParts, 'VposRequest');
-        $url = $auth->testPlatform ? $this->urlAPITest : $this->urlAPILive;
+        $url = $auth->test_platform ? $this->urlAPITest : $this->urlAPILive;
         $resp = $this->prmStrRequest($xml, $url);
         $dic = StringHelper::xmlToDictionary($resp, 'VposResponse');
 
-        $response->privateResponse['response_2'] = $dic;
-        $response->orderNumber = $orderId;
+        $response->private_response['response_2'] = $dic;
+        $response->order_number = $orderId;
 
         if (($dic['ResultCode'] ?? '') === '0000') {
-            $response->statu = SaleResponseStatu::Success;
+            $response->status = SaleResponseStatus::Success;
             $response->message = 'İşlem başarılı';
-            $response->transactionId = $dic['TransactionId'] ?? '';
+            $response->transaction_id = $dic['TransactionId'] ?? '';
         } else {
-            $response->statu = SaleResponseStatu::Error;
+            $response->status = SaleResponseStatus::Error;
             $response->message = $dic['ResultDetail'] ?? 'İşlem sırasında bir hata oluştu';
         }
 
         return $response;
     }
 
-    public function cancel(CancelRequest $request, VirtualPOSAuth $auth): CancelResponse
+    public function cancel(CancelRequest $request, MerchantAuth $auth): CancelResponse
     {
-        $response = new CancelResponse(statu: ResponseStatu::Error);
+        $response = new CancelResponse(status: ResponseStatus::Error);
 
         $xmlParts = [
-            'MerchantId' => $auth->merchantID,
-            'Password' => $auth->merchantPassword,
-            'TerminalNo' => $auth->merchantUser,
+            'MerchantId' => $auth->merchant_id,
+            'Password' => $auth->merchant_password,
+            'TerminalNo' => $auth->merchant_user,
             'TransactionType' => 'Cancel',
-            'ReferenceTransactionId' => $request->transactionId,
-            'ClientIp' => $request->customerIPAddress,
+            'ReferenceTransactionId' => $request->transaction_id,
+            'ClientIp' => $request->customer_ip_address,
         ];
 
         $xml = StringHelper::toXml($xmlParts, 'VposRequest');
-        $url = $auth->testPlatform ? $this->urlAPITest : $this->urlAPILive;
+        $url = $auth->test_platform ? $this->urlAPITest : $this->urlAPILive;
         $resp = $this->prmStrRequest($xml, $url);
         $dic = StringHelper::xmlToDictionary($resp, 'VposResponse');
 
-        $response->privateResponse = $dic;
+        $response->private_response = $dic;
 
         if (($dic['ResultCode'] ?? '') === '0000') {
-            $response->statu = ResponseStatu::Success;
+            $response->status = ResponseStatus::Success;
             $response->message = 'İşlem başarılı';
         } else {
             $response->message = $dic['ResultDetail'] ?? 'İşlem iptal edilemedi';
@@ -243,31 +243,31 @@ class VakifbankGateway implements VirtualPOSServiceInterface
         return $response;
     }
 
-    public function refund(RefundRequest $request, VirtualPOSAuth $auth): RefundResponse
+    public function refund(RefundRequest $request, MerchantAuth $auth): RefundResponse
     {
-        $response = new RefundResponse(statu: ResponseStatu::Error);
+        $response = new RefundResponse(status: ResponseStatus::Error);
 
         $xmlParts = [
-            'MerchantId' => $auth->merchantID,
-            'Password' => $auth->merchantPassword,
-            'TerminalNo' => $auth->merchantUser,
+            'MerchantId' => $auth->merchant_id,
+            'Password' => $auth->merchant_password,
+            'TerminalNo' => $auth->merchant_user,
             'TransactionType' => 'Refund',
-            'ReferenceTransactionId' => $request->transactionId,
-            'CurrencyAmount' => StringHelper::formatAmount($request->refundAmount),
-            'ClientIp' => $request->customerIPAddress,
+            'ReferenceTransactionId' => $request->transaction_id,
+            'CurrencyAmount' => StringHelper::formatAmount($request->refund_amount),
+            'ClientIp' => $request->customer_ip_address,
         ];
 
         $xml = StringHelper::toXml($xmlParts, 'VposRequest');
-        $url = $auth->testPlatform ? $this->urlAPITest : $this->urlAPILive;
+        $url = $auth->test_platform ? $this->urlAPITest : $this->urlAPILive;
         $resp = $this->prmStrRequest($xml, $url);
         $dic = StringHelper::xmlToDictionary($resp, 'VposResponse');
 
-        $response->privateResponse = $dic;
+        $response->private_response = $dic;
 
         if (($dic['ResultCode'] ?? '') === '0000') {
-            $response->statu = ResponseStatu::Success;
+            $response->status = ResponseStatus::Success;
             $response->message = 'İşlem başarılı';
-            $response->refundAmount = $request->refundAmount;
+            $response->refund_amount = $request->refund_amount;
         } else {
             $response->message = $dic['ResultDetail'] ?? 'İşlem iade edilemedi';
         }
@@ -275,24 +275,24 @@ class VakifbankGateway implements VirtualPOSServiceInterface
         return $response;
     }
 
-    public function binInstallmentQuery(BINInstallmentQueryRequest $request, VirtualPOSAuth $auth): BINInstallmentQueryResponse
+    public function binInstallmentQuery(BINInstallmentQueryRequest $request, MerchantAuth $auth): BINInstallmentQueryResponse
     {
         return new BINInstallmentQueryResponse(confirm: false);
     }
 
-    public function allInstallmentQuery(AllInstallmentQueryRequest $request, VirtualPOSAuth $auth): AllInstallmentQueryResponse
+    public function allInstallmentQuery(AllInstallmentQueryRequest $request, MerchantAuth $auth): AllInstallmentQueryResponse
     {
         return new AllInstallmentQueryResponse(confirm: false);
     }
 
-    public function additionalInstallmentQuery(AdditionalInstallmentQueryRequest $request, VirtualPOSAuth $auth): AdditionalInstallmentQueryResponse
+    public function additionalInstallmentQuery(AdditionalInstallmentQueryRequest $request, MerchantAuth $auth): AdditionalInstallmentQueryResponse
     {
         return new AdditionalInstallmentQueryResponse(confirm: false);
     }
 
-    public function saleQuery(SaleQueryRequest $request, VirtualPOSAuth $auth): SaleQueryResponse
+    public function saleQuery(SaleQueryRequest $request, MerchantAuth $auth): SaleQueryResponse
     {
-        return new SaleQueryResponse(statu: SaleQueryResponseStatu::Error, message: 'Bu sanal pos için satış sorgulama işlemi şuan desteklenmiyor');
+        return new SaleQueryResponse(status: SaleQueryResponseStatus::Error, message: 'Bu sanal pos için satış sorgulama işlemi şuan desteklenmiyor');
     }
 
     // --- Private helpers ---

@@ -2,7 +2,7 @@
 
 namespace EvrenOnur\SanalPos\Gateways\Banks\Nestpay;
 
-class AkbankNestpayGateway extends NestpayAbstractGateway
+class AkbankNestpayGateway extends AbstractNestpayGateway
 {
     protected function getUrlAPILive(): string
     {

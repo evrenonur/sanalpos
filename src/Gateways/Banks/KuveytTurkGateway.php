@@ -3,26 +3,26 @@
 namespace EvrenOnur\SanalPos\Gateways\Banks;
 
 use EvrenOnur\SanalPos\Contracts\VirtualPOSServiceInterface;
-use EvrenOnur\SanalPos\Enums\ResponseStatu;
-use EvrenOnur\SanalPos\Enums\SaleQueryResponseStatu;
-use EvrenOnur\SanalPos\Enums\SaleResponseStatu;
-use EvrenOnur\SanalPos\Helpers\StringHelper;
-use EvrenOnur\SanalPos\Models\AdditionalInstallmentQueryRequest;
-use EvrenOnur\SanalPos\Models\AdditionalInstallmentQueryResponse;
-use EvrenOnur\SanalPos\Models\AllInstallmentQueryRequest;
-use EvrenOnur\SanalPos\Models\AllInstallmentQueryResponse;
-use EvrenOnur\SanalPos\Models\BINInstallmentQueryRequest;
-use EvrenOnur\SanalPos\Models\BINInstallmentQueryResponse;
-use EvrenOnur\SanalPos\Models\CancelRequest;
-use EvrenOnur\SanalPos\Models\CancelResponse;
-use EvrenOnur\SanalPos\Models\RefundRequest;
-use EvrenOnur\SanalPos\Models\RefundResponse;
-use EvrenOnur\SanalPos\Models\Sale3DResponseRequest;
-use EvrenOnur\SanalPos\Models\SaleQueryRequest;
-use EvrenOnur\SanalPos\Models\SaleQueryResponse;
-use EvrenOnur\SanalPos\Models\SaleRequest;
-use EvrenOnur\SanalPos\Models\SaleResponse;
-use EvrenOnur\SanalPos\Models\VirtualPOSAuth;
+use EvrenOnur\SanalPos\Enums\ResponseStatus;
+use EvrenOnur\SanalPos\Enums\SaleQueryResponseStatus;
+use EvrenOnur\SanalPos\Enums\SaleResponseStatus;
+use EvrenOnur\SanalPos\Support\StringHelper;
+use EvrenOnur\SanalPos\DTOs\Requests\AdditionalInstallmentQueryRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\AdditionalInstallmentQueryResponse;
+use EvrenOnur\SanalPos\DTOs\Requests\AllInstallmentQueryRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\AllInstallmentQueryResponse;
+use EvrenOnur\SanalPos\DTOs\Requests\BINInstallmentQueryRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\BINInstallmentQueryResponse;
+use EvrenOnur\SanalPos\DTOs\Requests\CancelRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\CancelResponse;
+use EvrenOnur\SanalPos\DTOs\Requests\RefundRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\RefundResponse;
+use EvrenOnur\SanalPos\DTOs\Requests\Sale3DResponse;
+use EvrenOnur\SanalPos\DTOs\Requests\SaleQueryRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\SaleQueryResponse;
+use EvrenOnur\SanalPos\DTOs\Requests\SaleRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
+use EvrenOnur\SanalPos\DTOs\MerchantAuth;
 use GuzzleHttp\Client;
 
 class KuveytTurkGateway implements VirtualPOSServiceInterface
@@ -39,74 +39,74 @@ class KuveytTurkGateway implements VirtualPOSServiceInterface
 
     private string $url3DProvisionLive = 'https://sanalpos.kuveytturk.com.tr/ServiceGateWay/Home/ThreeDModelProvisionGate';
 
-    public function sale(SaleRequest $request, VirtualPOSAuth $auth): SaleResponse
+    public function sale(SaleRequest $request, MerchantAuth $auth): SaleResponse
     {
-        if ($request->payment3D?->confirm === true) {
+        if ($request->payment_3d?->confirm === true) {
             return $this->sale3D($request, $auth);
         }
 
-        $response = new SaleResponse(orderNumber: $request->orderNumber);
+        $response = new SaleResponse(order_number: $request->order_number);
 
-        $amount = $this->toKurus($request->saleInfo->amount);
-        $hashedPassword = $this->sha1Base64($auth->merchantPassword);
-        $hash = $this->sha1Base64($auth->merchantID . $request->orderNumber . $amount . $auth->merchantUser . $hashedPassword);
+        $amount = $this->toKurus($request->sale_info->amount);
+        $hashedPassword = $this->sha1Base64($auth->merchant_password);
+        $hash = $this->sha1Base64($auth->merchant_id . $request->order_number . $amount . $auth->merchant_user . $hashedPassword);
 
         $xml = $this->buildSaleXml($request, $auth, $hash, $amount, 1);
 
-        $url = $auth->testPlatform ? $this->urlNon3DTest : $this->urlNon3DLive;
+        $url = $auth->test_platform ? $this->urlNon3DTest : $this->urlNon3DLive;
         $resp = $this->xmlRequest($xml, $url);
         $dic = StringHelper::xmlToDictionary($resp, 'VPosTransactionResponseContract');
 
-        $response->privateResponse = $dic;
+        $response->private_response = $dic;
 
         if (($dic['ResponseCode'] ?? '') === '00') {
-            $response->statu = SaleResponseStatu::Success;
+            $response->status = SaleResponseStatus::Success;
             $response->message = 'İşlem başarılı';
-            $response->transactionId = ($dic['ProvisionNumber'] ?? '') . '|' . ($dic['OrderId'] ?? '');
+            $response->transaction_id = ($dic['ProvisionNumber'] ?? '') . '|' . ($dic['OrderId'] ?? '');
         } else {
-            $response->statu = SaleResponseStatu::Error;
+            $response->status = SaleResponseStatus::Error;
             $response->message = $dic['ResponseMessage'] ?? 'İşlem sırasında bir hata oluştu';
         }
 
         return $response;
     }
 
-    private function sale3D(SaleRequest $request, VirtualPOSAuth $auth): SaleResponse
+    private function sale3D(SaleRequest $request, MerchantAuth $auth): SaleResponse
     {
-        $response = new SaleResponse(orderNumber: $request->orderNumber);
+        $response = new SaleResponse(order_number: $request->order_number);
 
-        $amount = $this->toKurus($request->saleInfo->amount);
-        $hashedPassword = $this->sha1Base64($auth->merchantPassword);
+        $amount = $this->toKurus($request->sale_info->amount);
+        $hashedPassword = $this->sha1Base64($auth->merchant_password);
         $hash = $this->sha1Base64(
-            $auth->merchantID . $request->orderNumber . $amount .
-                $request->payment3D->returnURL . $request->payment3D->returnURL .
-                $auth->merchantUser . $hashedPassword
+            $auth->merchant_id . $request->order_number . $amount .
+                $request->payment_3d->return_url . $request->payment_3d->return_url .
+                $auth->merchant_user . $hashedPassword
         );
 
         $xml = $this->buildSaleXml($request, $auth, $hash, $amount, 3);
 
-        $url = $auth->testPlatform ? $this->url3DTest : $this->url3DLive;
+        $url = $auth->test_platform ? $this->url3DTest : $this->url3DLive;
         $resp = $this->xmlRequest($xml, $url);
 
-        $response->privateResponse = ['htmlResponse' => $resp];
+        $response->private_response = ['htmlResponse' => $resp];
 
         if (str_contains($resp, 'form') && str_contains($resp, 'action')) {
-            $response->statu = SaleResponseStatu::RedirectHTML;
+            $response->status = SaleResponseStatus::RedirectHTML;
             $response->message = $resp;
         } else {
             $dic = StringHelper::xmlToDictionary($resp, 'VPosTransactionResponseContract');
-            $response->privateResponse = $dic;
-            $response->statu = SaleResponseStatu::Error;
+            $response->private_response = $dic;
+            $response->status = SaleResponseStatus::Error;
             $response->message = $dic['ResponseMessage'] ?? 'İşlem sırasında bir hata oluştu';
         }
 
         return $response;
     }
 
-    public function sale3DResponse(Sale3DResponseRequest $request, VirtualPOSAuth $auth): SaleResponse
+    public function sale3DResponse(Sale3DResponse $request, MerchantAuth $auth): SaleResponse
     {
         $response = new SaleResponse;
-        $response->privateResponse = ['response_1' => $request->responseArray];
+        $response->private_response = ['response_1' => $request->responseArray];
 
         $authResponse = $request->responseArray['AuthenticationResponse'] ?? '';
         if (! empty($authResponse)) {
@@ -114,12 +114,12 @@ class KuveytTurkGateway implements VirtualPOSServiceInterface
         }
 
         $respDic = StringHelper::xmlToDictionary($authResponse, 'VPosTransactionResponseContract');
-        $response->privateResponse['response_parsed'] = $respDic;
+        $response->private_response['response_parsed'] = $respDic;
 
         if (($respDic['ResponseCode'] ?? '') !== '00') {
-            $response->statu = SaleResponseStatu::Error;
+            $response->status = SaleResponseStatus::Error;
             $response->message = $respDic['ResponseMessage'] ?? '3D doğrulaması başarısız';
-            $response->orderNumber = $respDic['MerchantOrderId'] ?? '';
+            $response->order_number = $respDic['MerchantOrderId'] ?? '';
 
             return $response;
         }
@@ -131,17 +131,17 @@ class KuveytTurkGateway implements VirtualPOSServiceInterface
         $currencyCode = $respDic['VPosMessage']['CurrencyCode'] ?? '0949';
         $md = $respDic['MD'] ?? '';
 
-        $hashedPassword = $this->sha1Base64($auth->merchantPassword);
-        $hash = $this->sha1Base64($auth->merchantID . $orderId . $amount . $auth->merchantUser . $hashedPassword);
+        $hashedPassword = $this->sha1Base64($auth->merchant_password);
+        $hash = $this->sha1Base64($auth->merchant_id . $orderId . $amount . $auth->merchant_user . $hashedPassword);
 
         $provXml = <<<XML
 <?xml version="1.0" encoding="utf-8"?>
 <KuveytTurkVPosMessage xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 <APIVersion>TDV2.0.0</APIVersion>
 <HashData>{$hash}</HashData>
-<MerchantId>{$auth->merchantID}</MerchantId>
-<CustomerId>{$auth->merchantStorekey}</CustomerId>
-<UserName>{$auth->merchantUser}</UserName>
+<MerchantId>{$auth->merchant_id}</MerchantId>
+<CustomerId>{$auth->merchant_storekey}</CustomerId>
+<UserName>{$auth->merchant_user}</UserName>
 <TransactionType>Sale</TransactionType>
 <InstallmentCount>{$installment}</InstallmentCount>
 <Amount>{$amount}</Amount>
@@ -158,86 +158,86 @@ class KuveytTurkGateway implements VirtualPOSServiceInterface
 </KuveytTurkVPosMessage>
 XML;
 
-        $provUrl = $auth->testPlatform ? $this->url3DProvisionTest : $this->url3DProvisionLive;
+        $provUrl = $auth->test_platform ? $this->url3DProvisionTest : $this->url3DProvisionLive;
         $provResp = $this->xmlRequest($provXml, $provUrl);
         $provDic = StringHelper::xmlToDictionary($provResp, 'VPosTransactionResponseContract');
 
-        $response->privateResponse['response_provision'] = $provDic;
-        $response->orderNumber = $orderId;
+        $response->private_response['response_provision'] = $provDic;
+        $response->order_number = $orderId;
 
         if (($provDic['ResponseCode'] ?? '') === '00') {
-            $response->statu = SaleResponseStatu::Success;
+            $response->status = SaleResponseStatus::Success;
             $response->message = 'İşlem başarılı';
-            $response->transactionId = ($provDic['ProvisionNumber'] ?? '') . '|' . ($provDic['OrderId'] ?? '');
+            $response->transaction_id = ($provDic['ProvisionNumber'] ?? '') . '|' . ($provDic['OrderId'] ?? '');
         } else {
-            $response->statu = SaleResponseStatu::Error;
+            $response->status = SaleResponseStatus::Error;
             $response->message = $provDic['ResponseMessage'] ?? 'İşlem sırasında bir hata oluştu';
         }
 
         return $response;
     }
 
-    public function cancel(CancelRequest $request, VirtualPOSAuth $auth): CancelResponse
+    public function cancel(CancelRequest $request, MerchantAuth $auth): CancelResponse
     {
-        return new CancelResponse(statu: ResponseStatu::Error, message: 'Bu banka için iptal metodu henüz tanımlanmamış!');
+        return new CancelResponse(status: ResponseStatus::Error, message: 'Bu banka için iptal metodu henüz tanımlanmamış!');
     }
 
-    public function refund(RefundRequest $request, VirtualPOSAuth $auth): RefundResponse
+    public function refund(RefundRequest $request, MerchantAuth $auth): RefundResponse
     {
-        return new RefundResponse(statu: ResponseStatu::Error, message: 'Bu banka için iade metodu henüz tanımlanmamış!');
+        return new RefundResponse(status: ResponseStatus::Error, message: 'Bu banka için iade metodu henüz tanımlanmamış!');
     }
 
-    public function binInstallmentQuery(BINInstallmentQueryRequest $request, VirtualPOSAuth $auth): BINInstallmentQueryResponse
+    public function binInstallmentQuery(BINInstallmentQueryRequest $request, MerchantAuth $auth): BINInstallmentQueryResponse
     {
         return new BINInstallmentQueryResponse(confirm: false);
     }
 
-    public function allInstallmentQuery(AllInstallmentQueryRequest $request, VirtualPOSAuth $auth): AllInstallmentQueryResponse
+    public function allInstallmentQuery(AllInstallmentQueryRequest $request, MerchantAuth $auth): AllInstallmentQueryResponse
     {
         return new AllInstallmentQueryResponse(confirm: false);
     }
 
-    public function additionalInstallmentQuery(AdditionalInstallmentQueryRequest $request, VirtualPOSAuth $auth): AdditionalInstallmentQueryResponse
+    public function additionalInstallmentQuery(AdditionalInstallmentQueryRequest $request, MerchantAuth $auth): AdditionalInstallmentQueryResponse
     {
         return new AdditionalInstallmentQueryResponse(confirm: false);
     }
 
-    public function saleQuery(SaleQueryRequest $request, VirtualPOSAuth $auth): SaleQueryResponse
+    public function saleQuery(SaleQueryRequest $request, MerchantAuth $auth): SaleQueryResponse
     {
-        return new SaleQueryResponse(statu: SaleQueryResponseStatu::Error, message: 'Bu sanal pos için satış sorgulama işlemi şuan desteklenmiyor');
+        return new SaleQueryResponse(status: SaleQueryResponseStatus::Error, message: 'Bu sanal pos için satış sorgulama işlemi şuan desteklenmiyor');
     }
 
     // --- Private helpers ---
 
-    private function buildSaleXml(SaleRequest $request, VirtualPOSAuth $auth, string $hash, string $amount, int $transactionSecurity): string
+    private function buildSaleXml(SaleRequest $request, MerchantAuth $auth, string $hash, string $amount, int $transactionSecurity): string
     {
-        $installment = $request->saleInfo->installment > 1 ? $request->saleInfo->installment : 0;
-        $currencyCode = str_pad((string) $request->saleInfo->currency->value, 4, '0', STR_PAD_LEFT);
-        $expMonth = str_pad($request->saleInfo->cardExpiryDateMonth, 2, '0', STR_PAD_LEFT);
-        $expYear = substr((string) $request->saleInfo->cardExpiryDateYear, 2);
-        $okUrl = $request->payment3D?->returnURL ?? '';
-        $failUrl = $request->payment3D?->returnURL ?? '';
+        $installment = $request->sale_info->installment > 1 ? $request->sale_info->installment : 0;
+        $currencyCode = str_pad((string) $request->sale_info->currency->value, 4, '0', STR_PAD_LEFT);
+        $expMonth = str_pad($request->sale_info->card_expiry_month, 2, '0', STR_PAD_LEFT);
+        $expYear = substr((string) $request->sale_info->card_expiry_year, 2);
+        $okUrl = $request->payment_3d?->return_url ?? '';
+        $failUrl = $request->payment_3d?->return_url ?? '';
 
         $xml = <<<XML
 <?xml version="1.0" encoding="utf-8"?>
 <KuveytTurkVPosMessage xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 <APIVersion>TDV2.0.0</APIVersion>
 <HashData>{$hash}</HashData>
-<MerchantId>{$auth->merchantID}</MerchantId>
-<CustomerId>{$auth->merchantStorekey}</CustomerId>
-<UserName>{$auth->merchantUser}</UserName>
+<MerchantId>{$auth->merchant_id}</MerchantId>
+<CustomerId>{$auth->merchant_storekey}</CustomerId>
+<UserName>{$auth->merchant_user}</UserName>
 <TransactionType>Sale</TransactionType>
 <InstallmentCount>{$installment}</InstallmentCount>
 <Amount>{$amount}</Amount>
 <DisplayAmount>{$amount}</DisplayAmount>
 <CurrencyCode>{$currencyCode}</CurrencyCode>
-<MerchantOrderId>{$request->orderNumber}</MerchantOrderId>
+<MerchantOrderId>{$request->order_number}</MerchantOrderId>
 <TransactionSecurity>{$transactionSecurity}</TransactionSecurity>
 <OkUrl>{$okUrl}</OkUrl>
 <FailUrl>{$failUrl}</FailUrl>
-<CardNumber>{$request->saleInfo->cardNumber}</CardNumber>
-<CardCVV2>{$request->saleInfo->cardCVV}</CardCVV2>
-<CardHolderName>{$request->saleInfo->cardNameSurname}</CardHolderName>
+<CardNumber>{$request->sale_info->card_number}</CardNumber>
+<CardCVV2>{$request->sale_info->card_cvv}</CardCVV2>
+<CardHolderName>{$request->sale_info->card_name_surname}</CardHolderName>
 <CardType>MasterCard</CardType>
 <CardExpireDateYear>{$expYear}</CardExpireDateYear>
 <CardExpireDateMonth>{$expMonth}</CardExpireDateMonth>

@@ -3,25 +3,25 @@
 namespace EvrenOnur\SanalPos;
 
 use EvrenOnur\SanalPos\Contracts\VirtualPOSServiceInterface;
-use EvrenOnur\SanalPos\Helpers\StringHelper;
-use EvrenOnur\SanalPos\Helpers\ValidationHelper;
-use EvrenOnur\SanalPos\Models\AdditionalInstallmentQueryRequest;
-use EvrenOnur\SanalPos\Models\AdditionalInstallmentQueryResponse;
-use EvrenOnur\SanalPos\Models\AllInstallmentQueryRequest;
-use EvrenOnur\SanalPos\Models\AllInstallmentQueryResponse;
-use EvrenOnur\SanalPos\Models\Bank;
-use EvrenOnur\SanalPos\Models\BINInstallmentQueryRequest;
-use EvrenOnur\SanalPos\Models\BINInstallmentQueryResponse;
-use EvrenOnur\SanalPos\Models\CancelRequest;
-use EvrenOnur\SanalPos\Models\CancelResponse;
-use EvrenOnur\SanalPos\Models\RefundRequest;
-use EvrenOnur\SanalPos\Models\RefundResponse;
-use EvrenOnur\SanalPos\Models\Sale3DResponseRequest;
-use EvrenOnur\SanalPos\Models\SaleQueryRequest;
-use EvrenOnur\SanalPos\Models\SaleQueryResponse;
-use EvrenOnur\SanalPos\Models\SaleRequest;
-use EvrenOnur\SanalPos\Models\SaleResponse;
-use EvrenOnur\SanalPos\Models\VirtualPOSAuth;
+use EvrenOnur\SanalPos\Support\StringHelper;
+use EvrenOnur\SanalPos\Support\ValidationHelper;
+use EvrenOnur\SanalPos\DTOs\Requests\AdditionalInstallmentQueryRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\AdditionalInstallmentQueryResponse;
+use EvrenOnur\SanalPos\DTOs\Requests\AllInstallmentQueryRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\AllInstallmentQueryResponse;
+use EvrenOnur\SanalPos\DTOs\Bank;
+use EvrenOnur\SanalPos\DTOs\Requests\BINInstallmentQueryRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\BINInstallmentQueryResponse;
+use EvrenOnur\SanalPos\DTOs\Requests\CancelRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\CancelResponse;
+use EvrenOnur\SanalPos\DTOs\Requests\RefundRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\RefundResponse;
+use EvrenOnur\SanalPos\DTOs\Requests\Sale3DResponse;
+use EvrenOnur\SanalPos\DTOs\Requests\SaleQueryRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\SaleQueryResponse;
+use EvrenOnur\SanalPos\DTOs\Requests\SaleRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
+use EvrenOnur\SanalPos\DTOs\MerchantAuth;
 use EvrenOnur\SanalPos\Services\BankService;
 use InvalidArgumentException;
 
@@ -29,19 +29,19 @@ class SanalPosClient
 {
     /**
      * Karttan çekim yapmak için kullanılır.
-     * 3D çekim yapmak için payment3D->confirm = true gönderilmelidir.
+     * 3D çekim yapmak için payment_3d->confirm = true gönderilmelidir.
      */
-    public static function sale(SaleRequest $request, VirtualPOSAuth $auth): SaleResponse
+    public static function sale(SaleRequest $request, MerchantAuth $auth): SaleResponse
     {
         ValidationHelper::validateSaleRequest($request);
         ValidationHelper::validateAuth($auth);
 
         // Adres sanitizasyonu
-        $request->invoiceInfo = ValidationHelper::sanitizeCustomerInfo($request->invoiceInfo);
-        $request->shippingInfo = ValidationHelper::sanitizeCustomerInfo($request->shippingInfo);
-        $request->saleInfo->cardNameSurname = StringHelper::clearString($request->saleInfo->cardNameSurname);
+        $request->invoice_info = ValidationHelper::sanitizeCustomerInfo($request->invoice_info);
+        $request->shipping_info = ValidationHelper::sanitizeCustomerInfo($request->shipping_info);
+        $request->sale_info->card_name_surname = StringHelper::clearString($request->sale_info->card_name_surname);
 
-        $gateway = self::getGateway($auth->bankCode);
+        $gateway = self::getGateway($auth->bank_code);
 
         return $gateway->sale($request, $auth);
     }
@@ -49,11 +49,11 @@ class SanalPosClient
     /**
      * 3D yapılan çekim işlemi sonucunu döner
      */
-    public static function sale3DResponse(Sale3DResponseRequest $request, VirtualPOSAuth $auth): SaleResponse
+    public static function sale3DResponse(Sale3DResponse $request, MerchantAuth $auth): SaleResponse
     {
         ValidationHelper::validateAuth($auth);
 
-        if ($auth->bankCode === '0067' && $request->currency === null) {
+        if ($auth->bank_code === '0067' && $request->currency === null) {
             throw new InvalidArgumentException('currency alanı Yapı Kredi bankası için zorunludur');
         }
 
@@ -66,7 +66,7 @@ class SanalPosClient
             }
         }
 
-        $gateway = self::getGateway($auth->bankCode);
+        $gateway = self::getGateway($auth->bank_code);
 
         return $gateway->sale3DResponse($request, $auth);
     }
@@ -74,12 +74,12 @@ class SanalPosClient
     /**
      * Karta yapılabilecek taksit sayısını döner
      */
-    public static function binInstallmentQuery(BINInstallmentQueryRequest $request, VirtualPOSAuth $auth): BINInstallmentQueryResponse
+    public static function binInstallmentQuery(BINInstallmentQueryRequest $request, MerchantAuth $auth): BINInstallmentQueryResponse
     {
         ValidationHelper::validateBINInstallmentQuery($request);
         ValidationHelper::validateAuth($auth);
 
-        $gateway = self::getGateway($auth->bankCode);
+        $gateway = self::getGateway($auth->bank_code);
 
         return $gateway->binInstallmentQuery($request, $auth);
     }
@@ -87,11 +87,11 @@ class SanalPosClient
     /**
      * Tutar ile taksit sayısını döner
      */
-    public static function allInstallmentQuery(AllInstallmentQueryRequest $request, VirtualPOSAuth $auth): AllInstallmentQueryResponse
+    public static function allInstallmentQuery(AllInstallmentQueryRequest $request, MerchantAuth $auth): AllInstallmentQueryResponse
     {
         ValidationHelper::validateAuth($auth);
 
-        $gateway = self::getGateway($auth->bankCode);
+        $gateway = self::getGateway($auth->bank_code);
 
         return $gateway->allInstallmentQuery($request, $auth);
     }
@@ -99,11 +99,11 @@ class SanalPosClient
     /**
      * Satış yapılabilecek ek taksit kampanyalarını döner
      */
-    public static function additionalInstallmentQuery(AdditionalInstallmentQueryRequest $request, VirtualPOSAuth $auth): AdditionalInstallmentQueryResponse
+    public static function additionalInstallmentQuery(AdditionalInstallmentQueryRequest $request, MerchantAuth $auth): AdditionalInstallmentQueryResponse
     {
         ValidationHelper::validateAuth($auth);
 
-        $gateway = self::getGateway($auth->bankCode);
+        $gateway = self::getGateway($auth->bank_code);
 
         return $gateway->additionalInstallmentQuery($request, $auth);
     }
@@ -111,12 +111,12 @@ class SanalPosClient
     /**
      * Ödeme iptal eder. Aynı gün yapılan ödemeler için kullanılabilir.
      */
-    public static function cancel(CancelRequest $request, VirtualPOSAuth $auth): CancelResponse
+    public static function cancel(CancelRequest $request, MerchantAuth $auth): CancelResponse
     {
         ValidationHelper::validateCancelRequest($request);
         ValidationHelper::validateAuth($auth);
 
-        $gateway = self::getGateway($auth->bankCode);
+        $gateway = self::getGateway($auth->bank_code);
 
         return $gateway->cancel($request, $auth);
     }
@@ -124,12 +124,12 @@ class SanalPosClient
     /**
      * Ödeme iade eder. Belirtilen tutar kadar kısmi iade işlemi yapılır.
      */
-    public static function refund(RefundRequest $request, VirtualPOSAuth $auth): RefundResponse
+    public static function refund(RefundRequest $request, MerchantAuth $auth): RefundResponse
     {
         ValidationHelper::validateRefundRequest($request);
         ValidationHelper::validateAuth($auth);
 
-        $gateway = self::getGateway($auth->bankCode);
+        $gateway = self::getGateway($auth->bank_code);
 
         return $gateway->refund($request, $auth);
     }
@@ -137,12 +137,12 @@ class SanalPosClient
     /**
      * Tekil işlem sorgulama
      */
-    public static function saleQuery(SaleQueryRequest $request, VirtualPOSAuth $auth): SaleQueryResponse
+    public static function saleQuery(SaleQueryRequest $request, MerchantAuth $auth): SaleQueryResponse
     {
         $request->validate();
         ValidationHelper::validateAuth($auth);
 
-        $gateway = self::getGateway($auth->bankCode);
+        $gateway = self::getGateway($auth->bank_code);
 
         return $gateway->saleQuery($request, $auth);
     }
@@ -160,11 +160,11 @@ class SanalPosClient
 
         return array_values(array_map(function (Bank $bank) {
             return new Bank(
-                bankCode: $bank->bankCode,
-                bankName: $bank->bankName,
-                collectiveVPOS: $bank->collectiveVPOS,
+                bank_code: $bank->bank_code,
+                bank_name: $bank->bank_name,
+                collective_vpos: $bank->collective_vpos,
                 commissionAutoAdd: $bank->commissionAutoAdd,
-                installmentAPI: $bank->installmentAPI,
+                installment_api: $bank->installment_api,
             );
         }, $banks));
     }
@@ -172,8 +172,8 @@ class SanalPosClient
     /**
      * Gateway instance döner
      */
-    private static function getGateway(string $bankCode): VirtualPOSServiceInterface
+    private static function getGateway(string $bank_code): VirtualPOSServiceInterface
     {
-        return BankService::createGateway($bankCode);
+        return BankService::createGateway($bank_code);
     }
 }

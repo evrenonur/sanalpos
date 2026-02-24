@@ -3,7 +3,7 @@
 namespace EvrenOnur\SanalPos\Services;
 
 use EvrenOnur\SanalPos\Contracts\VirtualPOSServiceInterface;
-use EvrenOnur\SanalPos\Models\Bank;
+use EvrenOnur\SanalPos\DTOs\Bank;
 use InvalidArgumentException;
 
 class BankService
@@ -128,24 +128,24 @@ class BankService
         '0010' => \EvrenOnur\SanalPos\Gateways\Banks\Nestpay\ZiraatBankasiGateway::class,
         '0210' => \EvrenOnur\SanalPos\Gateways\Banks\VakifKatilimGateway::class,
 
-        '9978' => \EvrenOnur\SanalPos\Gateways\PaymentInstitutions\PayNKolayGateway::class,
-        '9979' => \EvrenOnur\SanalPos\Gateways\PaymentInstitutions\CCPayment\HalkOdeGateway::class,
-        '9980' => \EvrenOnur\SanalPos\Gateways\PaymentInstitutions\TamiGateway::class,
-        '9981' => \EvrenOnur\SanalPos\Gateways\PaymentInstitutions\Payten\VakifPaySGateway::class,
-        '9982' => \EvrenOnur\SanalPos\Gateways\PaymentInstitutions\Payten\ZiraatPayGateway::class,
-        '9983' => \EvrenOnur\SanalPos\Gateways\PaymentInstitutions\CCPayment\VeparaGateway::class,
-        '9984' => \EvrenOnur\SanalPos\Gateways\PaymentInstitutions\MokaGateway::class,
-        '9985' => \EvrenOnur\SanalPos\Gateways\PaymentInstitutions\AhlpayGateway::class,
-        '9986' => \EvrenOnur\SanalPos\Gateways\PaymentInstitutions\CCPayment\IQmoneyGateway::class,
-        '9987' => \EvrenOnur\SanalPos\Gateways\PaymentInstitutions\CCPayment\ParolaparaGateway::class,
-        '9988' => \EvrenOnur\SanalPos\Gateways\PaymentInstitutions\CCPayment\PayBullGateway::class,
-        '9989' => \EvrenOnur\SanalPos\Gateways\PaymentInstitutions\ParamPosGateway::class,
-        '9990' => \EvrenOnur\SanalPos\Gateways\PaymentInstitutions\CCPayment\QNBPayGateway::class,
-        '9991' => \EvrenOnur\SanalPos\Gateways\PaymentInstitutions\CCPayment\SipayGateway::class,
-        '9993' => \EvrenOnur\SanalPos\Gateways\PaymentInstitutions\Payten\PaytenGateway::class,
-        '9997' => \EvrenOnur\SanalPos\Gateways\PaymentInstitutions\IyzicoGateway::class,
+        '9978' => \EvrenOnur\SanalPos\Gateways\Providers\PayNKolayGateway::class,
+        '9979' => \EvrenOnur\SanalPos\Gateways\Providers\CCPayment\HalkOdeGateway::class,
+        '9980' => \EvrenOnur\SanalPos\Gateways\Providers\TamiGateway::class,
+        '9981' => \EvrenOnur\SanalPos\Gateways\Providers\Payten\VakifPaySGateway::class,
+        '9982' => \EvrenOnur\SanalPos\Gateways\Providers\Payten\ZiraatPayGateway::class,
+        '9983' => \EvrenOnur\SanalPos\Gateways\Providers\CCPayment\VeparaGateway::class,
+        '9984' => \EvrenOnur\SanalPos\Gateways\Providers\MokaGateway::class,
+        '9985' => \EvrenOnur\SanalPos\Gateways\Providers\AhlpayGateway::class,
+        '9986' => \EvrenOnur\SanalPos\Gateways\Providers\CCPayment\IQmoneyGateway::class,
+        '9987' => \EvrenOnur\SanalPos\Gateways\Providers\CCPayment\ParolaparaGateway::class,
+        '9988' => \EvrenOnur\SanalPos\Gateways\Providers\CCPayment\PayBullGateway::class,
+        '9989' => \EvrenOnur\SanalPos\Gateways\Providers\ParamPosGateway::class,
+        '9990' => \EvrenOnur\SanalPos\Gateways\Providers\CCPayment\QNBPayGateway::class,
+        '9991' => \EvrenOnur\SanalPos\Gateways\Providers\CCPayment\SipayGateway::class,
+        '9993' => \EvrenOnur\SanalPos\Gateways\Providers\Payten\PaytenGateway::class,
+        '9997' => \EvrenOnur\SanalPos\Gateways\Providers\IyzicoGateway::class,
         '9998' => \EvrenOnur\SanalPos\Gateways\Banks\Nestpay\CardplusGateway::class,
-        '9999' => \EvrenOnur\SanalPos\Gateways\PaymentInstitutions\Payten\ParatikaGateway::class,
+        '9999' => \EvrenOnur\SanalPos\Gateways\Providers\Payten\ParatikaGateway::class,
     ];
 
     /**
@@ -180,48 +180,48 @@ class BankService
             new Bank('0210', 'Vakıf Katılım', gatewayClass: self::$gatewayMap['0210'] ?? null),
             new Bank('0209', 'Ziraat Katılım'),
 
-            new Bank('9978', 'PayNKolay', collectiveVPOS: true, installmentAPI: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9978'] ?? null),
-            new Bank('9979', 'HalkÖde', collectiveVPOS: true, installmentAPI: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9979'] ?? null),
-            new Bank('9980', 'Tami', collectiveVPOS: true, installmentAPI: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9980'] ?? null),
-            new Bank('9981', 'VakıfPayS', collectiveVPOS: true, installmentAPI: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9981'] ?? null),
-            new Bank('9982', 'ZiraatPay', collectiveVPOS: true, installmentAPI: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9982'] ?? null),
-            new Bank('9983', 'Vepara', collectiveVPOS: true, installmentAPI: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9983'] ?? null),
-            new Bank('9984', 'Moka', collectiveVPOS: true, installmentAPI: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9984'] ?? null),
-            new Bank('9985', 'Ahlpay', collectiveVPOS: true, installmentAPI: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9985'] ?? null),
-            new Bank('9986', 'IQmoney', collectiveVPOS: true, installmentAPI: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9986'] ?? null),
-            new Bank('9987', 'Parolapara', collectiveVPOS: true, installmentAPI: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9987'] ?? null),
-            new Bank('9988', 'PayBull', collectiveVPOS: true, installmentAPI: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9988'] ?? null),
-            new Bank('9989', 'ParamPos', collectiveVPOS: true, installmentAPI: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9989'] ?? null),
-            new Bank('9990', 'QNBpay', collectiveVPOS: true, installmentAPI: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9990'] ?? null),
-            new Bank('9991', 'Sipay', collectiveVPOS: true, installmentAPI: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9991'] ?? null),
-            new Bank('9992', 'Hepsipay', collectiveVPOS: true, installmentAPI: true, commissionAutoAdd: true),
-            new Bank('9993', 'Payten', collectiveVPOS: true, installmentAPI: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9993'] ?? null),
-            new Bank('9994', 'PayTR', collectiveVPOS: true, installmentAPI: true),
-            new Bank('9995', 'IPara', collectiveVPOS: true, installmentAPI: true),
-            new Bank('9996', 'PayU', collectiveVPOS: true, installmentAPI: true),
-            new Bank('9997', 'Iyzico', collectiveVPOS: true, installmentAPI: true, gatewayClass: self::$gatewayMap['9997'] ?? null),
+            new Bank('9978', 'PayNKolay', collective_vpos: true, installment_api: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9978'] ?? null),
+            new Bank('9979', 'HalkÖde', collective_vpos: true, installment_api: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9979'] ?? null),
+            new Bank('9980', 'Tami', collective_vpos: true, installment_api: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9980'] ?? null),
+            new Bank('9981', 'VakıfPayS', collective_vpos: true, installment_api: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9981'] ?? null),
+            new Bank('9982', 'ZiraatPay', collective_vpos: true, installment_api: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9982'] ?? null),
+            new Bank('9983', 'Vepara', collective_vpos: true, installment_api: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9983'] ?? null),
+            new Bank('9984', 'Moka', collective_vpos: true, installment_api: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9984'] ?? null),
+            new Bank('9985', 'Ahlpay', collective_vpos: true, installment_api: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9985'] ?? null),
+            new Bank('9986', 'IQmoney', collective_vpos: true, installment_api: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9986'] ?? null),
+            new Bank('9987', 'Parolapara', collective_vpos: true, installment_api: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9987'] ?? null),
+            new Bank('9988', 'PayBull', collective_vpos: true, installment_api: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9988'] ?? null),
+            new Bank('9989', 'ParamPos', collective_vpos: true, installment_api: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9989'] ?? null),
+            new Bank('9990', 'QNBpay', collective_vpos: true, installment_api: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9990'] ?? null),
+            new Bank('9991', 'Sipay', collective_vpos: true, installment_api: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9991'] ?? null),
+            new Bank('9992', 'Hepsipay', collective_vpos: true, installment_api: true, commissionAutoAdd: true),
+            new Bank('9993', 'Payten', collective_vpos: true, installment_api: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9993'] ?? null),
+            new Bank('9994', 'PayTR', collective_vpos: true, installment_api: true),
+            new Bank('9995', 'IPara', collective_vpos: true, installment_api: true),
+            new Bank('9996', 'PayU', collective_vpos: true, installment_api: true),
+            new Bank('9997', 'Iyzico', collective_vpos: true, installment_api: true, gatewayClass: self::$gatewayMap['9997'] ?? null),
             new Bank('9998', 'Cardplus', gatewayClass: self::$gatewayMap['9998'] ?? null),
-            new Bank('9999', 'Paratika', collectiveVPOS: true, installmentAPI: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9999'] ?? null),
+            new Bank('9999', 'Paratika', collective_vpos: true, installment_api: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9999'] ?? null),
         ];
     }
 
     /**
      * Banka koduna göre gateway sınıfı döner
      */
-    public static function getGatewayClass(string $bankCode): ?string
+    public static function getGatewayClass(string $bank_code): ?string
     {
-        return self::$gatewayMap[$bankCode] ?? null;
+        return self::$gatewayMap[$bank_code] ?? null;
     }
 
     /**
      * Banka koduna göre gateway instance döner
      */
-    public static function createGateway(string $bankCode): VirtualPOSServiceInterface
+    public static function createGateway(string $bank_code): VirtualPOSServiceInterface
     {
-        $class = self::getGatewayClass($bankCode);
+        $class = self::getGatewayClass($bank_code);
 
         if ($class === null) {
-            throw new InvalidArgumentException("'{$bankCode}' banka kodu için entegrasyon bulunamadı.");
+            throw new InvalidArgumentException("'{$bank_code}' banka kodu için entegrasyon bulunamadı.");
         }
 
         if (! class_exists($class)) {
@@ -240,10 +240,10 @@ class BankService
     /**
      * Banka koduna göre banka bilgisi döner
      */
-    public static function getBank(string $bankCode): ?Bank
+    public static function getBank(string $bank_code): ?Bank
     {
         foreach (self::allBanks() as $bank) {
-            if ($bank->bankCode === $bankCode) {
+            if ($bank->bank_code === $bank_code) {
                 return $bank;
             }
         }

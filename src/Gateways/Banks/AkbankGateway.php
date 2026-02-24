@@ -3,26 +3,26 @@
 namespace EvrenOnur\SanalPos\Gateways\Banks;
 
 use EvrenOnur\SanalPos\Contracts\VirtualPOSServiceInterface;
-use EvrenOnur\SanalPos\Enums\ResponseStatu;
-use EvrenOnur\SanalPos\Enums\SaleQueryResponseStatu;
-use EvrenOnur\SanalPos\Enums\SaleResponseStatu;
-use EvrenOnur\SanalPos\Helpers\StringHelper;
-use EvrenOnur\SanalPos\Models\AdditionalInstallmentQueryRequest;
-use EvrenOnur\SanalPos\Models\AdditionalInstallmentQueryResponse;
-use EvrenOnur\SanalPos\Models\AllInstallmentQueryRequest;
-use EvrenOnur\SanalPos\Models\AllInstallmentQueryResponse;
-use EvrenOnur\SanalPos\Models\BINInstallmentQueryRequest;
-use EvrenOnur\SanalPos\Models\BINInstallmentQueryResponse;
-use EvrenOnur\SanalPos\Models\CancelRequest;
-use EvrenOnur\SanalPos\Models\CancelResponse;
-use EvrenOnur\SanalPos\Models\RefundRequest;
-use EvrenOnur\SanalPos\Models\RefundResponse;
-use EvrenOnur\SanalPos\Models\Sale3DResponseRequest;
-use EvrenOnur\SanalPos\Models\SaleQueryRequest;
-use EvrenOnur\SanalPos\Models\SaleQueryResponse;
-use EvrenOnur\SanalPos\Models\SaleRequest;
-use EvrenOnur\SanalPos\Models\SaleResponse;
-use EvrenOnur\SanalPos\Models\VirtualPOSAuth;
+use EvrenOnur\SanalPos\Enums\ResponseStatus;
+use EvrenOnur\SanalPos\Enums\SaleQueryResponseStatus;
+use EvrenOnur\SanalPos\Enums\SaleResponseStatus;
+use EvrenOnur\SanalPos\Support\StringHelper;
+use EvrenOnur\SanalPos\DTOs\Requests\AdditionalInstallmentQueryRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\AdditionalInstallmentQueryResponse;
+use EvrenOnur\SanalPos\DTOs\Requests\AllInstallmentQueryRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\AllInstallmentQueryResponse;
+use EvrenOnur\SanalPos\DTOs\Requests\BINInstallmentQueryRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\BINInstallmentQueryResponse;
+use EvrenOnur\SanalPos\DTOs\Requests\CancelRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\CancelResponse;
+use EvrenOnur\SanalPos\DTOs\Requests\RefundRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\RefundResponse;
+use EvrenOnur\SanalPos\DTOs\Requests\Sale3DResponse;
+use EvrenOnur\SanalPos\DTOs\Requests\SaleQueryRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\SaleQueryResponse;
+use EvrenOnur\SanalPos\DTOs\Requests\SaleRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
+use EvrenOnur\SanalPos\DTOs\MerchantAuth;
 use GuzzleHttp\Client;
 
 class AkbankGateway implements VirtualPOSServiceInterface
@@ -35,19 +35,19 @@ class AkbankGateway implements VirtualPOSServiceInterface
 
     private string $url3DLive = 'https://virtualpospaymentgateway.akbank.com/securepay';
 
-    public function sale(SaleRequest $request, VirtualPOSAuth $auth): SaleResponse
+    public function sale(SaleRequest $request, MerchantAuth $auth): SaleResponse
     {
-        $request->saleInfo->currency = $request->saleInfo->currency ?? \EvrenOnur\SanalPos\Enums\Currency::TRY;
-        $request->saleInfo->installment = $request->saleInfo->installment > 1 ? $request->saleInfo->installment : 1;
+        $request->sale_info->currency = $request->sale_info->currency ?? \EvrenOnur\SanalPos\Enums\Currency::TRY;
+        $request->sale_info->installment = $request->sale_info->installment > 1 ? $request->sale_info->installment : 1;
 
-        if ($request->payment3D?->confirm === true) {
+        if ($request->payment_3d?->confirm === true) {
             return $this->sale3D($request, $auth);
         }
 
-        $response = new SaleResponse(orderNumber: $request->orderNumber);
+        $response = new SaleResponse(order_number: $request->order_number);
 
-        $totalStr = StringHelper::formatAmount($request->saleInfo->amount);
-        $email = ! empty($request->invoiceInfo?->emailAddress) ? $request->invoiceInfo->emailAddress : 'test@test.com';
+        $totalStr = StringHelper::formatAmount($request->sale_info->amount);
+        $email = ! empty($request->invoice_info?->email_address) ? $request->invoice_info->email_address : 'test@test.com';
 
         $req = [
             'version' => '1.00',
@@ -55,44 +55,44 @@ class AkbankGateway implements VirtualPOSServiceInterface
             'requestDateTime' => date('Y-m-d\TH:i:s.v'),
             'randomNumber' => $this->getRandomHex(128),
             'terminal' => [
-                'merchantSafeId' => $auth->merchantUser,
-                'terminalSafeId' => $auth->merchantPassword,
+                'merchantSafeId' => $auth->merchant_user,
+                'terminalSafeId' => $auth->merchant_password,
             ],
             'order' => [
-                'orderId' => $request->orderNumber,
+                'orderId' => $request->order_number,
             ],
             'card' => [
-                'cardHolderName' => $request->saleInfo->cardNameSurname,
-                'cardNumber' => $request->saleInfo->cardNumber,
-                'cvv2' => $request->saleInfo->cardCVV,
-                'expireDate' => str_pad($request->saleInfo->cardExpiryDateMonth, 2, '0', STR_PAD_LEFT) . substr((string) $request->saleInfo->cardExpiryDateYear, 2),
+                'cardHolderName' => $request->sale_info->card_name_surname,
+                'card_number' => $request->sale_info->card_number,
+                'cvv2' => $request->sale_info->card_cvv,
+                'expireDate' => str_pad($request->sale_info->card_expiry_month, 2, '0', STR_PAD_LEFT) . substr((string) $request->sale_info->card_expiry_year, 2),
             ],
             'transaction' => [
                 'amount' => $totalStr,
-                'currencyCode' => $request->saleInfo->currency->value,
+                'currencyCode' => $request->sale_info->currency->value,
                 'motoInd' => 0,
-                'installCount' => $request->saleInfo->installment,
+                'installCount' => $request->sale_info->installment,
             ],
             'customer' => [
-                'emailAddress' => $email,
-                'ipAddress' => $request->customerIPAddress,
+                'email_address' => $email,
+                'ipAddress' => $request->customer_ip_address,
             ],
         ];
 
-        $link = $auth->testPlatform ? $this->urlAPITest : $this->urlAPILive;
+        $link = $auth->test_platform ? $this->urlAPITest : $this->urlAPILive;
         $responseStr = $this->jsonRequest($req, $link, $auth);
         $responseDic = json_decode($responseStr, true) ?? [];
 
-        $response->privateResponse = $responseDic;
+        $response->private_response = $responseDic;
 
         if (($responseDic['responseCode'] ?? '') === 'VPS-0000') {
-            $transactionId = '';
+            $transaction_id = '';
             if (isset($responseDic['transaction']['authCode'])) {
-                $transactionId = (string) $responseDic['transaction']['authCode'];
+                $transaction_id = (string) $responseDic['transaction']['authCode'];
             }
-            $response->statu = SaleResponseStatu::Success;
+            $response->status = SaleResponseStatus::Success;
             $response->message = 'İşlem başarılı';
-            $response->transactionId = $transactionId;
+            $response->transaction_id = $transaction_id;
 
             return $response;
         }
@@ -104,35 +104,35 @@ class AkbankGateway implements VirtualPOSServiceInterface
             $errorMsg = 'Sanal pos üye işyeri bilgilerinizi kontrol ediniz';
         }
 
-        $response->statu = SaleResponseStatu::Error;
+        $response->status = SaleResponseStatus::Error;
         $response->message = $errorMsg;
 
         return $response;
     }
 
-    private function sale3D(SaleRequest $request, VirtualPOSAuth $auth): SaleResponse
+    private function sale3D(SaleRequest $request, MerchantAuth $auth): SaleResponse
     {
-        $response = new SaleResponse(orderNumber: $request->orderNumber);
+        $response = new SaleResponse(order_number: $request->order_number);
 
-        $totalStr = StringHelper::formatAmount($request->saleInfo->amount);
-        $email = ! empty($request->invoiceInfo?->emailAddress) ? $request->invoiceInfo->emailAddress : 'test@test.com';
+        $totalStr = StringHelper::formatAmount($request->sale_info->amount);
+        $email = ! empty($request->invoice_info?->email_address) ? $request->invoice_info->email_address : 'test@test.com';
 
         $req = [
             'paymentModel' => '3D',
             'txnCode' => '3000',
-            'merchantSafeId' => $auth->merchantUser,
-            'terminalSafeId' => $auth->merchantPassword,
-            'orderId' => $request->orderNumber,
+            'merchantSafeId' => $auth->merchant_user,
+            'terminalSafeId' => $auth->merchant_password,
+            'orderId' => $request->order_number,
             'lang' => 'TR',
             'amount' => $totalStr,
-            'currencyCode' => (string) $request->saleInfo->currency->value,
-            'installCount' => (string) $request->saleInfo->installment,
-            'okUrl' => $request->payment3D->returnURL,
-            'failUrl' => $request->payment3D->returnURL,
-            'emailAddress' => $email,
-            'creditCard' => $request->saleInfo->cardNumber,
-            'expiredDate' => str_pad($request->saleInfo->cardExpiryDateMonth, 2, '0', STR_PAD_LEFT) . substr((string) $request->saleInfo->cardExpiryDateYear, 2),
-            'cvv' => $request->saleInfo->cardCVV,
+            'currencyCode' => (string) $request->sale_info->currency->value,
+            'installCount' => (string) $request->sale_info->installment,
+            'okUrl' => $request->payment_3d->return_url,
+            'failUrl' => $request->payment_3d->return_url,
+            'email_address' => $email,
+            'creditCard' => $request->sale_info->card_number,
+            'expiredDate' => str_pad($request->sale_info->card_expiry_month, 2, '0', STR_PAD_LEFT) . substr((string) $request->sale_info->card_expiry_year, 2),
+            'cvv' => $request->sale_info->card_cvv,
             'randomNumber' => $this->getRandomHex(128),
             'requestDateTime' => date('Y-m-d\TH:i:s.v'),
             'hash' => '',
@@ -141,40 +141,40 @@ class AkbankGateway implements VirtualPOSServiceInterface
         $hashItems = $req['paymentModel'] . $req['txnCode'] . $req['merchantSafeId'] .
             $req['terminalSafeId'] . $req['orderId'] . $req['lang'] .
             $req['amount'] . $req['currencyCode'] . $req['installCount'] .
-            $req['okUrl'] . $req['failUrl'] . $req['emailAddress'] .
+            $req['okUrl'] . $req['failUrl'] . $req['email_address'] .
             $req['creditCard'] . $req['expiredDate'] . $req['cvv'] .
             $req['randomNumber'] . $req['requestDateTime'];
 
-        $req['hash'] = $this->hmacHash($hashItems, $auth->merchantStorekey);
+        $req['hash'] = $this->hmacHash($hashItems, $auth->merchant_storekey);
 
-        $link = $auth->testPlatform ? $this->url3DTest : $this->url3DLive;
+        $link = $auth->test_platform ? $this->url3DTest : $this->url3DLive;
         $responseStr = $this->formRequest($req, $link);
 
-        $response->privateResponse = ['stringResponse' => $responseStr];
+        $response->private_response = ['stringResponse' => $responseStr];
 
         if (str_contains($responseStr, 'action="' . $req['failUrl'] . '"')) {
             $form = StringHelper::getFormParams($responseStr);
             if (! empty($form['responseMessage'])) {
-                $response->statu = SaleResponseStatu::Error;
+                $response->status = SaleResponseStatus::Error;
                 $response->message = $form['responseMessage'];
 
                 return $response;
             }
         }
 
-        $response->statu = SaleResponseStatu::RedirectHTML;
+        $response->status = SaleResponseStatus::RedirectHTML;
         $response->message = $responseStr;
 
         return $response;
     }
 
-    public function sale3DResponse(Sale3DResponseRequest $request, VirtualPOSAuth $auth): SaleResponse
+    public function sale3DResponse(Sale3DResponse $request, MerchantAuth $auth): SaleResponse
     {
         $response = new SaleResponse;
-        $response->privateResponse = ['response_1' => $request->responseArray];
+        $response->private_response = ['response_1' => $request->responseArray];
 
         if (! empty($request->responseArray['orderId'])) {
-            $response->orderNumber = $request->responseArray['orderId'];
+            $response->order_number = $request->responseArray['orderId'];
         }
 
         if (($request->responseArray['responseCode'] ?? '') === 'VPS-0000' && ($request->responseArray['mdStatus'] ?? '') === '1') {
@@ -184,8 +184,8 @@ class AkbankGateway implements VirtualPOSServiceInterface
                 'requestDateTime' => date('Y-m-d\TH:i:s.v'),
                 'randomNumber' => $this->getRandomHex(128),
                 'terminal' => [
-                    'merchantSafeId' => $auth->merchantUser,
-                    'terminalSafeId' => $auth->merchantPassword,
+                    'merchantSafeId' => $auth->merchant_user,
+                    'terminalSafeId' => $auth->merchant_password,
                 ],
                 'order' => [
                     'orderId' => $request->responseArray['orderId'] ?? '',
@@ -204,20 +204,20 @@ class AkbankGateway implements VirtualPOSServiceInterface
                 ],
             ];
 
-            $link = $auth->testPlatform ? $this->urlAPITest : $this->urlAPILive;
+            $link = $auth->test_platform ? $this->urlAPITest : $this->urlAPILive;
             $responseStr = $this->jsonRequest($req, $link, $auth);
             $responseDic = json_decode($responseStr, true) ?? [];
 
-            $response->privateResponse['response_2'] = $responseDic;
+            $response->private_response['response_2'] = $responseDic;
 
             if (($responseDic['responseCode'] ?? '') === 'VPS-0000') {
-                $transactionId = '';
+                $transaction_id = '';
                 if (isset($responseDic['transaction']['authCode'])) {
-                    $transactionId = (string) $responseDic['transaction']['authCode'];
+                    $transaction_id = (string) $responseDic['transaction']['authCode'];
                 }
-                $response->statu = SaleResponseStatu::Success;
+                $response->status = SaleResponseStatus::Success;
                 $response->message = 'İşlem başarılı';
-                $response->transactionId = $transactionId;
+                $response->transaction_id = $transaction_id;
 
                 return $response;
             }
@@ -229,24 +229,24 @@ class AkbankGateway implements VirtualPOSServiceInterface
                 $errorMsg = 'Sanal pos üye işyeri bilgilerinizi kontrol ediniz';
             }
 
-            $response->statu = SaleResponseStatu::Error;
+            $response->status = SaleResponseStatus::Error;
             $response->message = $errorMsg;
 
             return $response;
         } elseif (! empty($request->responseArray['responseMessage'])) {
-            $response->statu = SaleResponseStatu::Error;
+            $response->status = SaleResponseStatus::Error;
             $response->message = $request->responseArray['responseMessage'];
         } else {
-            $response->statu = SaleResponseStatu::Error;
+            $response->status = SaleResponseStatus::Error;
             $response->message = '3D doğrulaması başarısız';
         }
 
         return $response;
     }
 
-    public function cancel(CancelRequest $request, VirtualPOSAuth $auth): CancelResponse
+    public function cancel(CancelRequest $request, MerchantAuth $auth): CancelResponse
     {
-        $response = new CancelResponse(statu: ResponseStatu::Error);
+        $response = new CancelResponse(status: ResponseStatus::Error);
 
         $req = [
             'version' => '1.00',
@@ -254,21 +254,21 @@ class AkbankGateway implements VirtualPOSServiceInterface
             'requestDateTime' => date('Y-m-d\TH:i:s.v'),
             'randomNumber' => $this->getRandomHex(128),
             'terminal' => [
-                'merchantSafeId' => $auth->merchantUser,
-                'terminalSafeId' => $auth->merchantPassword,
+                'merchantSafeId' => $auth->merchant_user,
+                'terminalSafeId' => $auth->merchant_password,
             ],
-            'order' => ['orderId' => $request->orderNumber],
-            'customer' => ['ipAddress' => $request->customerIPAddress],
+            'order' => ['orderId' => $request->order_number],
+            'customer' => ['ipAddress' => $request->customer_ip_address],
         ];
 
-        $link = $auth->testPlatform ? $this->urlAPITest : $this->urlAPILive;
+        $link = $auth->test_platform ? $this->urlAPITest : $this->urlAPILive;
         $responseStr = $this->jsonRequest($req, $link, $auth);
         $responseDic = json_decode($responseStr, true) ?? [];
 
-        $response->privateResponse = $responseDic;
+        $response->private_response = $responseDic;
 
         if (($responseDic['responseCode'] ?? '') === 'VPS-0000') {
-            $response->statu = ResponseStatu::Success;
+            $response->status = ResponseStatus::Success;
             $response->message = 'İşlem başarılı';
         } elseif (! empty($responseDic['responseMessage'])) {
             $response->message = $responseDic['responseMessage'];
@@ -279,11 +279,11 @@ class AkbankGateway implements VirtualPOSServiceInterface
         return $response;
     }
 
-    public function refund(RefundRequest $request, VirtualPOSAuth $auth): RefundResponse
+    public function refund(RefundRequest $request, MerchantAuth $auth): RefundResponse
     {
-        $response = new RefundResponse(statu: ResponseStatu::Error);
+        $response = new RefundResponse(status: ResponseStatus::Error);
 
-        $totalStr = StringHelper::formatAmount($request->refundAmount);
+        $totalStr = StringHelper::formatAmount($request->refund_amount);
 
         $req = [
             'version' => '1.00',
@@ -291,27 +291,27 @@ class AkbankGateway implements VirtualPOSServiceInterface
             'requestDateTime' => date('Y-m-d\TH:i:s.v'),
             'randomNumber' => $this->getRandomHex(128),
             'terminal' => [
-                'merchantSafeId' => $auth->merchantUser,
-                'terminalSafeId' => $auth->merchantPassword,
+                'merchantSafeId' => $auth->merchant_user,
+                'terminalSafeId' => $auth->merchant_password,
             ],
-            'order' => ['orderId' => $request->orderNumber],
-            'customer' => ['ipAddress' => $request->customerIPAddress],
+            'order' => ['orderId' => $request->order_number],
+            'customer' => ['ipAddress' => $request->customer_ip_address],
             'transaction' => [
                 'amount' => $totalStr,
                 'currencyCode' => $request->currency?->value ?? 949,
             ],
         ];
 
-        $link = $auth->testPlatform ? $this->urlAPITest : $this->urlAPILive;
+        $link = $auth->test_platform ? $this->urlAPITest : $this->urlAPILive;
         $responseStr = $this->jsonRequest($req, $link, $auth);
         $responseDic = json_decode($responseStr, true) ?? [];
 
-        $response->privateResponse = $responseDic;
+        $response->private_response = $responseDic;
 
         if (($responseDic['responseCode'] ?? '') === 'VPS-0000') {
-            $response->statu = ResponseStatu::Success;
+            $response->status = ResponseStatus::Success;
             $response->message = 'İşlem başarılı';
-            $response->refundAmount = $request->refundAmount;
+            $response->refund_amount = $request->refund_amount;
         } elseif (! empty($responseDic['responseMessage'])) {
             $response->message = $responseDic['responseMessage'];
         } else {
@@ -321,36 +321,36 @@ class AkbankGateway implements VirtualPOSServiceInterface
         return $response;
     }
 
-    public function binInstallmentQuery(BINInstallmentQueryRequest $request, VirtualPOSAuth $auth): BINInstallmentQueryResponse
+    public function binInstallmentQuery(BINInstallmentQueryRequest $request, MerchantAuth $auth): BINInstallmentQueryResponse
     {
         return new BINInstallmentQueryResponse;
     }
 
-    public function allInstallmentQuery(AllInstallmentQueryRequest $request, VirtualPOSAuth $auth): AllInstallmentQueryResponse
+    public function allInstallmentQuery(AllInstallmentQueryRequest $request, MerchantAuth $auth): AllInstallmentQueryResponse
     {
         return new AllInstallmentQueryResponse(confirm: false);
     }
 
-    public function additionalInstallmentQuery(AdditionalInstallmentQueryRequest $request, VirtualPOSAuth $auth): AdditionalInstallmentQueryResponse
+    public function additionalInstallmentQuery(AdditionalInstallmentQueryRequest $request, MerchantAuth $auth): AdditionalInstallmentQueryResponse
     {
         return new AdditionalInstallmentQueryResponse(confirm: false);
     }
 
-    public function saleQuery(SaleQueryRequest $request, VirtualPOSAuth $auth): SaleQueryResponse
+    public function saleQuery(SaleQueryRequest $request, MerchantAuth $auth): SaleQueryResponse
     {
         return new SaleQueryResponse(
-            statu: SaleQueryResponseStatu::Error,
+            status: SaleQueryResponseStatus::Error,
             message: 'Bu sanal pos için satış sorgulama işlemi şuan desteklenmiyor'
         );
     }
 
     // --- Private helpers ---
 
-    private function jsonRequest(array $params, string $url, VirtualPOSAuth $auth): string
+    private function jsonRequest(array $params, string $url, MerchantAuth $auth): string
     {
         try {
             $json = json_encode($params, JSON_UNESCAPED_UNICODE);
-            $hash = $this->hmacHash($json, $auth->merchantStorekey);
+            $hash = $this->hmacHash($json, $auth->merchant_storekey);
 
             $client = new Client(['verify' => false]);
             $response = $client->post($url, [
