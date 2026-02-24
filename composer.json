@@ -1,0 +1,59 @@
+{
+    "name": "evrenonur/sanalpos",
+    "version": "1.0.0",
+    "description": "Türkiye'deki banka ve ödeme kuruluşlarının sanal POS entegrasyonlarını tek bir Laravel paketi altında birleştiren kütüphane",
+    "keywords": ["laravel", "sanal-pos", "sanalpos", "payment", "pos", "turkey", "akbank", "garanti", "yapikredi", "isbank", "iyzico", "sipay"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Evren Onur",
+            "email": "onur.evren.1999@gmail.com"
+        }
+    ],
+    "type": "library",
+    "require": {
+        "php": "^8.1",
+        "illuminate/support": "^10.0|^11.0|^12.0",
+        "guzzlehttp/guzzle": "^7.0",
+        "ext-simplexml": "*",
+        "ext-openssl": "*",
+        "ext-json": "*"
+    },
+    "require-dev": {
+        "pestphp/pest": "^3.0",
+        "laravel/pint": "^1.27"
+    },
+    "autoload": {
+        "psr-4": {
+            "EvrenOnur\\SanalPos\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "EvrenOnur\\SanalPos\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "EvrenOnur\\SanalPos\\SanalPosServiceProvider"
+            ],
+            "aliases": {
+                "SanalPos": "EvrenOnur\\SanalPos\\Facades\\SanalPos"
+            }
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "scripts": {
+        "test": "vendor/bin/pest --testdox",
+        "test-coverage": "vendor/bin/pest --coverage-text",
+        "lint": "vendor/bin/pint",
+        "lint-test": "vendor/bin/pint --test"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}
