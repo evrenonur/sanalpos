@@ -1,7 +1,8 @@
 # SanalPos
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/evrenonur/sanalpos)](https://packagist.org/packages/evrenonur/sanalpos)
-[![License](https://img.shields.io/github/license/evrenonur/sanalpos)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![PHP Version](https://img.shields.io/packagist/php-v/evrenonur/sanalpos)](https://packagist.org/packages/evrenonur/sanalpos)
 
 ## SanalPos: Sanal Pos Entegrasyonlarını Basitleştirin
 
