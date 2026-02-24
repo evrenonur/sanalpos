@@ -23,10 +23,11 @@ use EvrenOnur\SanalPos\DTOs\Responses\SaleQueryResponse;
 use EvrenOnur\SanalPos\DTOs\Requests\SaleRequest;
 use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
 use EvrenOnur\SanalPos\DTOs\MerchantAuth;
-use GuzzleHttp\Client;
+use EvrenOnur\SanalPos\Support\MakesHttpRequests;
 
 class VakifKatilimGateway implements VirtualPOSServiceInterface
 {
+    use MakesHttpRequests;
     private string $urlNon3DLive = 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/Non3DPayGate';
 
     private string $url3DLive = 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/ThreeDModelPayGate';
@@ -41,14 +42,15 @@ class VakifKatilimGateway implements VirtualPOSServiceInterface
 
         $response = new SaleResponse(order_number: $request->order_number);
 
-        $amount = $this->toKurus($request->sale_info->amount);
+        $amount = StringHelper::toKurus($request->sale_info->amount);
         $currencyCode = str_pad((string) $request->sale_info->currency->value, 4, '0', STR_PAD_LEFT);
         $installment = $request->sale_info->installment > 1 ? $request->sale_info->installment : 0;
-        $hashedPassword = $this->sha1Base64($auth->merchant_password);
-        $hash = $this->sha1Base64($auth->merchant_id . $request->order_number . $amount . $auth->merchant_user . $hashedPassword);
+        $hashedPassword = StringHelper::sha1Base64($auth->merchant_password);
+        $hash = StringHelper::sha1Base64($auth->merchant_id . $request->order_number . $amount . $auth->merchant_user . $hashedPassword);
 
         $expMonth = str_pad($request->sale_info->card_expiry_month, 2, '0', STR_PAD_LEFT);
         $expYear = substr((string) $request->sale_info->card_expiry_year, 2);
+        $cardType = StringHelper::detectCardType($request->sale_info->card_number);
 
         $xml = <<<XML
 <?xml version="1.0" encoding="utf-8"?>
@@ -70,14 +72,14 @@ class VakifKatilimGateway implements VirtualPOSServiceInterface
 <CardNumber>{$request->sale_info->card_number}</CardNumber>
 <CardCVV2>{$request->sale_info->card_cvv}</CardCVV2>
 <CardHolderName>{$request->sale_info->card_name_surname}</CardHolderName>
-<CardType>MasterCard</CardType>
+<CardType>{$cardType}</CardType>
 <CardExpireDateYear>{$expYear}</CardExpireDateYear>
 <CardExpireDateMonth>{$expMonth}</CardExpireDateMonth>
 <CustomerIPAddress>{$request->customer_ip_address}</CustomerIPAddress>
 </VPosMessageContract>
 XML;
 
-        $resp = $this->xmlRequest($xml, $this->urlNon3DLive);
+        $resp = $this->httpPostXml($this->urlNon3DLive, $xml);
         $dic = StringHelper::xmlToDictionary($resp, 'VPosTransactionResponseContract');
 
         $response->private_response = $dic;
@@ -98,11 +100,11 @@ XML;
     {
         $response = new SaleResponse(order_number: $request->order_number);
 
-        $amount = $this->toKurus($request->sale_info->amount);
+        $amount = StringHelper::toKurus($request->sale_info->amount);
         $currencyCode = str_pad((string) $request->sale_info->currency->value, 4, '0', STR_PAD_LEFT);
         $installment = $request->sale_info->installment > 1 ? $request->sale_info->installment : 0;
-        $hashedPassword = $this->sha1Base64($auth->merchant_password);
-        $hash = $this->sha1Base64(
+        $hashedPassword = StringHelper::sha1Base64($auth->merchant_password);
+        $hash = StringHelper::sha1Base64(
             $auth->merchant_id . $request->order_number . $amount .
                 $request->payment_3d->return_url . $request->payment_3d->return_url .
                 $auth->merchant_user . $hashedPassword
@@ -110,6 +112,7 @@ XML;
 
         $expMonth = str_pad($request->sale_info->card_expiry_month, 2, '0', STR_PAD_LEFT);
         $expYear = substr((string) $request->sale_info->card_expiry_year, 2);
+        $cardType = StringHelper::detectCardType($request->sale_info->card_number);
 
         $xml = <<<XML
 <?xml version="1.0" encoding="utf-8"?>
@@ -134,14 +137,14 @@ XML;
 <CardNumber>{$request->sale_info->card_number}</CardNumber>
 <CardCVV2>{$request->sale_info->card_cvv}</CardCVV2>
 <CardHolderName>{$request->sale_info->card_name_surname}</CardHolderName>
-<CardType>MasterCard</CardType>
+<CardType>{$cardType}</CardType>
 <CardExpireDateYear>{$expYear}</CardExpireDateYear>
 <CardExpireDateMonth>{$expMonth}</CardExpireDateMonth>
 <CustomerIPAddress>{$request->customer_ip_address}</CustomerIPAddress>
 </VPosMessageContract>
 XML;
 
-        $resp = $this->xmlRequest($xml, $this->url3DLive);
+        $resp = $this->httpPostXml($this->url3DLive, $xml);
         $response->private_response = ['htmlResponse' => $resp];
 
         if (str_contains($resp, 'form') && str_contains($resp, 'action')) {
@@ -185,8 +188,8 @@ XML;
         $currencyCode = $respDic['VPosMessage']['CurrencyCode'] ?? '0949';
         $md = $respDic['MD'] ?? '';
 
-        $hashedPassword = $this->sha1Base64($auth->merchant_password);
-        $hash = $this->sha1Base64($auth->merchant_id . $orderId . $amount . $auth->merchant_user . $hashedPassword);
+        $hashedPassword = StringHelper::sha1Base64($auth->merchant_password);
+        $hash = StringHelper::sha1Base64($auth->merchant_id . $orderId . $amount . $auth->merchant_user . $hashedPassword);
 
         $provXml = <<<XML
 <?xml version="1.0" encoding="utf-8"?>
@@ -216,7 +219,7 @@ XML;
 </VPosMessageContract>
 XML;
 
-        $provResp = $this->xmlRequest($provXml, $this->url3DProvisionLive);
+        $provResp = $this->httpPostXml($this->url3DProvisionLive, $provXml);
         $provDic = StringHelper::xmlToDictionary($provResp, 'VPosTransactionResponseContract');
 
         $response->private_response['response_provision'] = $provDic;
@@ -266,24 +269,6 @@ XML;
 
     // --- Private Helpers ---
 
-    private function toKurus(float $amount): string
-    {
-        return str_replace([',', '.'], '', number_format($amount, 2, '.', ''));
-    }
-
-    private function sha1Base64(string $data): string
-    {
-        return base64_encode(hash('sha1', $data, true));
-    }
-
-    private function xmlRequest(string $xml, string $url): string
-    {
-        $client = new Client(['verify' => false]);
-        $response = $client->post($url, [
-            'body' => $xml,
-            'headers' => ['Content-Type' => 'application/xml; charset=utf-8'],
-        ]);
-
-        return $response->getBody()->getContents();
-    }
+    // toKurus, sha1Base64 ve xmlRequest
+    // StringHelper ve MakesHttpRequests trait'ü üzerinden sağlanır.
 }

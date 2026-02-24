@@ -225,4 +225,82 @@ HTML;
     {
         return $value === null || trim($value) === '';
     }
+
+    /**
+     * Tutarı kuruş formatına çevirir (noktasız/virgülsüz).
+     * Örnek: 100.50 → "10050", 9.99 → "999"
+     */
+    public static function toKurus(float $amount): string
+    {
+        return str_replace([',', '.'], '', number_format($amount, 2, '.', ''));
+    }
+
+    /**
+     * SHA1 hash + Base64 encode.
+     * Birçok banka API'si bu formatı kullanır.
+     */
+    public static function sha1Base64(string $data): string
+    {
+        return base64_encode(hash('sha1', $data, true));
+    }
+
+    /**
+     * Noktalı virgülle (;;) ayrılmış yanıtı key=value dictionary'sine çevirir.
+     * InterVPos (Denizbank, QNBFinansbank vb.) yanıt formatı.
+     */
+    public static function parseSemicolonResponse(string $response): array
+    {
+        $dic = [];
+        $parts = array_filter(explode(';;', $response));
+        foreach ($parts as $part) {
+            $kv = explode('=', $part, 2);
+            if (count($kv) === 2) {
+                $dic[$kv[0]] = $kv[1];
+            }
+        }
+
+        return $dic;
+    }
+
+    /**
+     * Kart numarasının BIN'inden kart tipini algılar.
+     * KuveytTürk/VakıfKatılım API'leri CardType alanı bekler.
+     */
+    public static function detectCardType(string $cardNumber): string
+    {
+        $cardNumber = preg_replace('/\D/', '', $cardNumber);
+
+        if (empty($cardNumber)) {
+            return 'MasterCard';
+        }
+
+        $firstDigit = $cardNumber[0] ?? '';
+        $firstTwo = substr($cardNumber, 0, 2);
+
+        // Visa: 4 ile başlar
+        if ($firstDigit === '4') {
+            return 'Visa';
+        }
+
+        // MasterCard: 51-55 veya 2221-2720
+        if (in_array($firstTwo, ['51', '52', '53', '54', '55'])) {
+            return 'MasterCard';
+        }
+        $firstFour = substr($cardNumber, 0, 4);
+        if ((int) $firstFour >= 2221 && (int) $firstFour <= 2720) {
+            return 'MasterCard';
+        }
+
+        // AMEX: 34, 37
+        if (in_array($firstTwo, ['34', '37'])) {
+            return 'AmericanExpress';
+        }
+
+        // Troy: 65, 9792
+        if ($firstTwo === '65' || substr($cardNumber, 0, 4) === '9792') {
+            return 'Troy';
+        }
+
+        return 'MasterCard';
+    }
 }

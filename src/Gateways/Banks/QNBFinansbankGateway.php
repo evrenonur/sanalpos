@@ -23,10 +23,11 @@ use EvrenOnur\SanalPos\DTOs\Responses\SaleQueryResponse;
 use EvrenOnur\SanalPos\DTOs\Requests\SaleRequest;
 use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
 use EvrenOnur\SanalPos\DTOs\MerchantAuth;
-use GuzzleHttp\Client;
+use EvrenOnur\SanalPos\Support\MakesHttpRequests;
 
 class QNBFinansbankGateway implements VirtualPOSServiceInterface
 {
+    use MakesHttpRequests;
     private string $urlAPITest = 'https://vpostest.qnbfinansbank.com/Gateway/Default.aspx';
 
     private string $urlAPILive = 'https://vpos.qnbfinansbank.com/Gateway/Default.aspx';
@@ -57,8 +58,8 @@ class QNBFinansbankGateway implements VirtualPOSServiceInterface
             'Lang' => 'TR',
         ];
 
-        $res = $this->formRequest($req, $auth->test_platform ? $this->urlAPITest : $this->urlAPILive);
-        $dic = $this->parseSemicolonResponse($res);
+        $res = $this->httpPostForm($auth->test_platform ? $this->urlAPITest : $this->urlAPILive, $req);
+        $dic = StringHelper::parseSemicolonResponse($res);
 
         $response->private_response = $dic;
 
@@ -102,7 +103,7 @@ class QNBFinansbankGateway implements VirtualPOSServiceInterface
             'Hash' => '',
         ];
 
-        $hashText = $this->sha1Base64(
+        $hashText = StringHelper::sha1Base64(
             $req['MbrId'] . $req['OrderId'] . $req['PurchAmount'] .
                 $req['OkUrl'] . $req['FailUrl'] . $req['TxnType'] .
                 $req['InstallmentCount'] . $req['Rnd'] . $auth->merchant_storekey
@@ -110,7 +111,7 @@ class QNBFinansbankGateway implements VirtualPOSServiceInterface
 
         $req['Hash'] = $hashText;
 
-        $res = $this->formRequest($req, $auth->test_platform ? $this->urlAPITest : $this->urlAPILive);
+        $res = $this->httpPostForm($auth->test_platform ? $this->urlAPITest : $this->urlAPILive, $req);
         $form = StringHelper::getFormParams($res);
 
         $response->private_response = $form;
@@ -162,8 +163,8 @@ class QNBFinansbankGateway implements VirtualPOSServiceInterface
             'Lang' => 'TR',
         ];
 
-        $res = $this->formRequest($req, $auth->test_platform ? $this->urlAPITest : $this->urlAPILive);
-        $dic = $this->parseSemicolonResponse($res);
+        $res = $this->httpPostForm($auth->test_platform ? $this->urlAPITest : $this->urlAPILive, $req);
+        $dic = StringHelper::parseSemicolonResponse($res);
         $response->private_response = $dic;
 
         if (($dic['ProcReturnCode'] ?? '') === '00') {
@@ -195,8 +196,8 @@ class QNBFinansbankGateway implements VirtualPOSServiceInterface
             'Lang' => 'TR',
         ];
 
-        $res = $this->formRequest($req, $auth->test_platform ? $this->urlAPITest : $this->urlAPILive);
-        $dic = $this->parseSemicolonResponse($res);
+        $res = $this->httpPostForm($auth->test_platform ? $this->urlAPITest : $this->urlAPILive, $req);
+        $dic = StringHelper::parseSemicolonResponse($res);
         $response->private_response = $dic;
 
         if (($dic['ProcReturnCode'] ?? '') === '00') {
@@ -234,30 +235,6 @@ class QNBFinansbankGateway implements VirtualPOSServiceInterface
 
     // --- Private helpers ---
 
-    private function sha1Base64(string $text): string
-    {
-        return base64_encode(hash('sha1', $text, true));
-    }
-
-    private function parseSemicolonResponse(string $response): array
-    {
-        $dic = [];
-        $parts = array_filter(explode(';;', $response));
-        foreach ($parts as $part) {
-            $kv = explode('=', $part, 2);
-            if (count($kv) === 2) {
-                $dic[$kv[0]] = $kv[1];
-            }
-        }
-
-        return $dic;
-    }
-
-    private function formRequest(array $params, string $url): string
-    {
-        $client = new Client(['verify' => false]);
-        $response = $client->post($url, ['form_params' => $params]);
-
-        return $response->getBody()->getContents();
-    }
+    // sha1Base64, parseSemicolonResponse ve formRequest
+    // StringHelper ve MakesHttpRequests trait'ü üzerinden sağlanır.
 }

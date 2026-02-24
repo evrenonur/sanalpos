@@ -23,10 +23,11 @@ use EvrenOnur\SanalPos\DTOs\Responses\SaleQueryResponse;
 use EvrenOnur\SanalPos\DTOs\Requests\SaleRequest;
 use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
 use EvrenOnur\SanalPos\DTOs\MerchantAuth;
-use GuzzleHttp\Client;
+use EvrenOnur\SanalPos\Support\MakesHttpRequests;
 
 class GarantiBBVAGateway implements VirtualPOSServiceInterface
 {
+    use MakesHttpRequests;
     private string $urlAPITest = 'https://sanalposprovtest.garantibbva.com.tr/VPServlet';
 
     private string $urlAPILive = 'https://sanalposprov.garanti.com.tr/VPServlet';
@@ -41,7 +42,7 @@ class GarantiBBVAGateway implements VirtualPOSServiceInterface
             return $this->sale3D($request, $auth);
         }
 
-        $amount = $this->to2Digit($request->sale_info->amount);
+        $amount = StringHelper::toKurus($request->sale_info->amount);
         $installment = $request->sale_info->installment > 1 ? $request->sale_info->installment : '';
 
         $hashedPassword = strtoupper($this->getSHA1($auth->merchant_password . str_pad((string) ((int) $auth->merchant_user), 9, '0', STR_PAD_LEFT)));
@@ -83,7 +84,7 @@ class GarantiBBVAGateway implements VirtualPOSServiceInterface
         ];
 
         $xml = StringHelper::toXml($param, 'GVPSRequest', 'utf-8');
-        $resp = $this->xmlRequest($xml, $auth->test_platform ? $this->urlAPITest : $this->urlAPILive);
+        $resp = $this->httpPostRaw($auth->test_platform ? $this->urlAPITest : $this->urlAPILive, $xml, ['Content-Type' => 'application/x-www-form-urlencoded']);
         $dic = StringHelper::xmlToDictionary($resp, 'GVPSResponse');
         $dic['originalResponseXML'] = $resp;
 
@@ -116,7 +117,7 @@ class GarantiBBVAGateway implements VirtualPOSServiceInterface
 
     private function sale3D(SaleRequest $request, MerchantAuth $auth): SaleResponse
     {
-        $amount = $this->to2Digit($request->sale_info->amount);
+        $amount = StringHelper::toKurus($request->sale_info->amount);
         $installment = $request->sale_info->installment > 1 ? (string) $request->sale_info->installment : '';
 
         $hashedPassword = strtoupper($this->getSHA1($auth->merchant_password . str_pad((string) ((int) $auth->merchant_user), 9, '0', STR_PAD_LEFT)));
@@ -151,7 +152,7 @@ class GarantiBBVAGateway implements VirtualPOSServiceInterface
             'secure3dhash' => $hash,
         ];
 
-        $resp = $this->formRequest($param, $auth->test_platform ? $this->url3DTest : $this->url3DLive);
+        $resp = $this->httpPostForm($auth->test_platform ? $this->url3DTest : $this->url3DLive, $param);
         $cleanResp = str_replace(' value ="', ' value="', $resp);
         $form = StringHelper::getFormParams($cleanResp);
         $form['originalResponseHTML'] = $resp;
@@ -252,7 +253,7 @@ class GarantiBBVAGateway implements VirtualPOSServiceInterface
         ];
 
         $xml = StringHelper::toXml($param, 'GVPSRequest', 'utf-8');
-        $resp = $this->xmlRequest($xml, $auth->test_platform ? $this->urlAPITest : $this->urlAPILive);
+        $resp = $this->httpPostRaw($auth->test_platform ? $this->urlAPITest : $this->urlAPILive, $xml, ['Content-Type' => 'application/x-www-form-urlencoded']);
         $dic = StringHelper::xmlToDictionary($resp, 'GVPSResponse');
 
         if (isset($dic['Transaction']['Response']['Code'])) {
@@ -314,33 +315,9 @@ class GarantiBBVAGateway implements VirtualPOSServiceInterface
 
     // --- Private helpers ---
 
-    /** Garanti BBVA formatı: 100.50 â†’ "10050" (kuruş) */
-    private function to2Digit(float $amount): string
-    {
-        return str_replace([',', '.'], '', number_format($amount, 2, '.', ''));
-    }
 
     private function getSHA1(string $data): string
     {
         return hash('sha1', $data);
-    }
-
-    private function xmlRequest(string $xml, string $url): string
-    {
-        $client = new Client(['verify' => false]);
-        $response = $client->post($url, [
-            'body' => $xml,
-            'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
-        ]);
-
-        return $response->getBody()->getContents();
-    }
-
-    private function formRequest(array $params, string $url): string
-    {
-        $client = new Client(['verify' => false]);
-        $response = $client->post($url, ['form_params' => $params]);
-
-        return $response->getBody()->getContents();
     }
 }

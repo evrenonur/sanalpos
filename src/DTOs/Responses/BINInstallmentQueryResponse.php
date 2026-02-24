@@ -11,5 +11,6 @@ class BINInstallmentQueryResponse
         public bool $confirm = false,
         /** @var Installment[]|null */
         public ?array $installment_list = null,
+        public ?array $private_response = null,
     ) {}
 }

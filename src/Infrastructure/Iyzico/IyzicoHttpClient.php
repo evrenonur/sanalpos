@@ -2,29 +2,31 @@
 
 namespace EvrenOnur\SanalPos\Infrastructure\Iyzico;
 
-use GuzzleHttp\Client;
+use EvrenOnur\SanalPos\Support\MakesHttpRequests;
 
 /**
  * Iyzico REST HTTP istemcisi.
  */
 class IyzicoHttpClient
 {
+    use MakesHttpRequests;
+
+    private static ?self $instance = null;
+
+    private static function getInstance(): self
+    {
+        if (self::$instance === null) {
+            self::$instance = new self;
+        }
+
+        return self::$instance;
+    }
+
     public static function post(string $url, array $headers, array $body): array
     {
         try {
-            $client = new Client(['verify' => false]);
-
-            $guzzleHeaders = [];
-            foreach ($headers as $key => $value) {
-                $guzzleHeaders[$key] = $value;
-            }
-
-            $response = $client->post($url, [
-                'headers' => $guzzleHeaders,
-                'body' => json_encode($body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
-            ]);
-
-            $content = $response->getBody()->getContents();
+            $jsonBody = json_encode($body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            $content = self::getInstance()->httpPostRaw($url, $jsonBody, $headers);
 
             return json_decode($content, true) ?? [];
         } catch (\Throwable $e) {

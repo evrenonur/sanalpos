@@ -24,10 +24,11 @@ use EvrenOnur\SanalPos\DTOs\Responses\SaleQueryResponse;
 use EvrenOnur\SanalPos\DTOs\Requests\SaleRequest;
 use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
 use EvrenOnur\SanalPos\DTOs\MerchantAuth;
-use GuzzleHttp\Client;
+use EvrenOnur\SanalPos\Support\MakesHttpRequests;
 
 abstract class AbstractPaytenGateway implements VirtualPOSServiceInterface
 {
+    use MakesHttpRequests;
     abstract protected function getApiTestUrl(): string;
 
     abstract protected function getApiLiveUrl(): string;
@@ -360,13 +361,6 @@ SCRIPT;
 
     protected function formRequest(array $params, string $url): string
     {
-        try {
-            $client = new Client(['verify' => false]);
-            $response = $client->post($url, ['form_params' => $params]);
-
-            return $response->getBody()->getContents();
-        } catch (\Throwable $e) {
-            return '';
-        }
+        return $this->httpPostForm($url, $params);
     }
 }

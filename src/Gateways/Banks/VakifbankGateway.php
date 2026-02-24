@@ -23,10 +23,11 @@ use EvrenOnur\SanalPos\DTOs\Responses\SaleQueryResponse;
 use EvrenOnur\SanalPos\DTOs\Requests\SaleRequest;
 use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
 use EvrenOnur\SanalPos\DTOs\MerchantAuth;
-use GuzzleHttp\Client;
+use EvrenOnur\SanalPos\Support\MakesHttpRequests;
 
 class VakifbankGateway implements VirtualPOSServiceInterface
 {
+    use MakesHttpRequests;
     private string $urlAPITest = 'https://onlineodemetest.vakifbank.com.tr:4443/VposService/v3/Vposreq.aspx';
 
     private string $urlAPILive = 'https://onlineodeme.vakifbank.com.tr:4443/VposService/v3/Vposreq.aspx';
@@ -113,7 +114,7 @@ class VakifbankGateway implements VirtualPOSServiceInterface
         }
 
         $url3D = $auth->test_platform ? $this->url3DTest : $this->url3DLive;
-        $resp = $this->formRequest($req, $url3D);
+        $resp = $this->httpPostForm($url3D, $req);
         $dic = StringHelper::xmlToDictionary($resp);
 
         $response->private_response = $dic;
@@ -299,19 +300,6 @@ class VakifbankGateway implements VirtualPOSServiceInterface
 
     private function prmStrRequest(string $xml, string $url): string
     {
-        $client = new Client(['verify' => false]);
-        $response = $client->post($url, [
-            'form_params' => ['prmstr' => $xml],
-        ]);
-
-        return $response->getBody()->getContents();
-    }
-
-    private function formRequest(array $params, string $url): string
-    {
-        $client = new Client(['verify' => false]);
-        $response = $client->post($url, ['form_params' => $params]);
-
-        return $response->getBody()->getContents();
+        return $this->httpPostForm($url, ['prmstr' => $xml]);
     }
 }

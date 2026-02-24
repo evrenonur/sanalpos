@@ -22,10 +22,12 @@ use EvrenOnur\SanalPos\DTOs\Responses\SaleQueryResponse;
 use EvrenOnur\SanalPos\DTOs\Requests\SaleRequest;
 use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
 use EvrenOnur\SanalPos\DTOs\MerchantAuth;
-use GuzzleHttp\Client;
+use EvrenOnur\SanalPos\Support\MakesHttpRequests;
+use EvrenOnur\SanalPos\Support\StringHelper;
 
 class AhlpayGateway implements VirtualPOSServiceInterface
 {
+    use MakesHttpRequests;
     private string $urlTest = 'https://testahlsanalpos.ahlpay.com.tr';
 
     private string $urlLive = 'https://ahlsanalpos.ahlpay.com.tr';
@@ -47,7 +49,7 @@ class AhlpayGateway implements VirtualPOSServiceInterface
             return $response;
         }
 
-        $totalAmount = $this->toKurus($request->sale_info->amount);
+        $totalAmount = StringHelper::toKurus($request->sale_info->amount);
         $installment = $request->sale_info->installment > 1 ? $request->sale_info->installment : 1;
         $rnd = 'RND' . $request->order_number;
         $hash = $this->generateHash($auth->merchant_storekey, $rnd, $request->order_number, $totalAmount, $tokenData['merchantId']);
@@ -99,7 +101,7 @@ class AhlpayGateway implements VirtualPOSServiceInterface
             return $response;
         }
 
-        $totalAmount = $this->toKurus($request->sale_info->amount);
+        $totalAmount = StringHelper::toKurus($request->sale_info->amount);
         $installment = $request->sale_info->installment > 1 ? $request->sale_info->installment : 1;
         $rnd = 'RND' . $request->order_number;
         $hash = $this->generateHash($auth->merchant_storekey, $rnd, $request->order_number, $totalAmount, $tokenData['merchantId']);
@@ -210,7 +212,7 @@ class AhlpayGateway implements VirtualPOSServiceInterface
         $body = [
             'txnType' => 'Refund',
             'orderId' => $request->order_number,
-            'totalAmount' => $this->toKurus($request->refund_amount),
+            'totalAmount' => StringHelper::toKurus($request->refund_amount),
         ];
 
         $resp = $this->jsonRequest($baseUrl . '/api/Payment/Refund', $body, $tokenData);
@@ -263,12 +265,8 @@ class AhlpayGateway implements VirtualPOSServiceInterface
                 'email' => $auth->merchant_user,
                 'password' => $auth->merchant_password,
             ];
-            $client = new Client(['verify' => false]);
-            $resp = $client->post($baseUrl . '/api/Security/AuthenticationMerchant', [
-                'json' => $body,
-                'headers' => ['Content-Type' => 'application/json'],
-            ]);
-            $data = json_decode($resp->getBody()->getContents(), true) ?? [];
+            $resp = $this->httpPostJson($baseUrl . '/api/Security/AuthenticationMerchant', $body);
+            $data = json_decode($resp, true) ?? [];
             $d = $data['data'] ?? [];
 
             return [
@@ -288,27 +286,15 @@ class AhlpayGateway implements VirtualPOSServiceInterface
         return strtoupper(hash('sha512', $data));
     }
 
-    private function toKurus(float $amount): string
-    {
-        return str_replace([',', '.'], '', number_format($amount, 2, '.', ''));
-    }
+    // --- Private helpers ---
 
     private function jsonRequest(string $url, array $body, array $tokenData = []): string
     {
-        try {
-            $headers = ['Content-Type' => 'application/json'];
-            if (! empty($tokenData['token'])) {
-                $headers['Authorization'] = ($tokenData['tokenType'] ?? 'Bearer') . ' ' . $tokenData['token'];
-            }
-            $client = new Client(['verify' => false]);
-            $resp = $client->post($url, [
-                'json' => $body,
-                'headers' => $headers,
-            ]);
-
-            return $resp->getBody()->getContents();
-        } catch (\Throwable $e) {
-            return '';
+        $headers = [];
+        if (! empty($tokenData['token'])) {
+            $headers['Authorization'] = ($tokenData['tokenType'] ?? 'Bearer') . ' ' . $tokenData['token'];
         }
+
+        return $this->httpPostJson($url, $body, $headers);
     }
 }

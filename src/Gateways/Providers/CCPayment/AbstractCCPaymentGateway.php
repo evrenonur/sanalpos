@@ -26,10 +26,11 @@ use EvrenOnur\SanalPos\DTOs\Responses\SaleQueryResponse;
 use EvrenOnur\SanalPos\DTOs\Requests\SaleRequest;
 use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
 use EvrenOnur\SanalPos\DTOs\MerchantAuth;
-use GuzzleHttp\Client;
+use EvrenOnur\SanalPos\Support\MakesHttpRequests;
 
 abstract class AbstractCCPaymentGateway implements VirtualPOSServiceInterface
 {
+    use MakesHttpRequests;
     abstract protected function getTestBaseUrl(): string;
 
     abstract protected function getLiveBaseUrl(): string;
@@ -415,20 +416,11 @@ abstract class AbstractCCPaymentGateway implements VirtualPOSServiceInterface
 
     protected function jsonRequest(string $url, array $body, ?string $token = null): string
     {
-        try {
-            $headers = ['Content-Type' => 'application/json; charset=utf-8'];
-            if (! empty($token)) {
-                $headers['Authorization'] = 'Bearer ' . $token;
-            }
-            $client = new Client(['verify' => false]);
-            $response = $client->post($url, [
-                'json' => $body,
-                'headers' => $headers,
-            ]);
-
-            return $response->getBody()->getContents();
-        } catch (\Throwable $e) {
-            return '';
+        $headers = [];
+        if (! empty($token)) {
+            $headers['Authorization'] = 'Bearer ' . $token;
         }
+
+        return $this->httpPostJson($url, $body, $headers);
     }
 }

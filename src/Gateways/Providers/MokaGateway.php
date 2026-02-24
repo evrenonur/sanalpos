@@ -23,10 +23,11 @@ use EvrenOnur\SanalPos\DTOs\Responses\SaleQueryResponse;
 use EvrenOnur\SanalPos\DTOs\Requests\SaleRequest;
 use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
 use EvrenOnur\SanalPos\DTOs\MerchantAuth;
-use GuzzleHttp\Client;
+use EvrenOnur\SanalPos\Support\MakesHttpRequests;
 
 class MokaGateway implements VirtualPOSServiceInterface
 {
+    use MakesHttpRequests;
     private string $urlTest = 'https://service.refmoka.com';
 
     private string $urlLive = 'https://service.moka.com';
@@ -370,16 +371,6 @@ class MokaGateway implements VirtualPOSServiceInterface
 
     private function jsonRequest(string $url, array $body): string
     {
-        try {
-            $client = new Client(['verify' => false]);
-            $resp = $client->post($url, [
-                'json' => $body,
-                'headers' => ['Content-Type' => 'application/json'],
-            ]);
-
-            return $resp->getBody()->getContents();
-        } catch (\Throwable $e) {
-            return '';
-        }
+        return $this->httpPostJson($url, $body);
     }
 }

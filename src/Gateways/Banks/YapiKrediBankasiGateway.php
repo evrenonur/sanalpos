@@ -24,10 +24,11 @@ use EvrenOnur\SanalPos\DTOs\Responses\SaleQueryResponse;
 use EvrenOnur\SanalPos\DTOs\Requests\SaleRequest;
 use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
 use EvrenOnur\SanalPos\DTOs\MerchantAuth;
-use GuzzleHttp\Client;
+use EvrenOnur\SanalPos\Support\MakesHttpRequests;
 
 class YapiKrediBankasiGateway implements VirtualPOSServiceInterface
 {
+    use MakesHttpRequests;
     private string $urlAPITest = 'https://setmpos.ykb.com/PosnetWebService/XML';
 
     private string $urlAPILive = 'https://posnet.yapikredi.com.tr/PosnetWebService/XML';
@@ -44,7 +45,7 @@ class YapiKrediBankasiGateway implements VirtualPOSServiceInterface
 
         $response = new SaleResponse(order_number: $request->order_number);
 
-        $amount = $this->toKurus($request->sale_info->amount);
+        $amount = StringHelper::toKurus($request->sale_info->amount);
         $orderId = $this->toOrderNumber($request->order_number, 24);
         $expDate = substr((string) $request->sale_info->card_expiry_year, 2) .
             str_pad($request->sale_info->card_expiry_month, 2, '0', STR_PAD_LEFT);
@@ -91,7 +92,7 @@ XML;
     {
         $response = new SaleResponse(order_number: $request->order_number);
 
-        $amount = $this->toKurus($request->sale_info->amount);
+        $amount = StringHelper::toKurus($request->sale_info->amount);
         $xid = $this->toOrderNumber($request->order_number, 20);
         $expDate = substr((string) $request->sale_info->card_expiry_year, 2) .
             str_pad($request->sale_info->card_expiry_month, 2, '0', STR_PAD_LEFT);
@@ -267,11 +268,6 @@ XML;
 
     // --- Private Helpers ---
 
-    private function toKurus(float $amount): string
-    {
-        return str_replace([',', '.'], '', number_format($amount, 2, '.', ''));
-    }
-
     private function toOrderNumber(string $order_number, int $length): string
     {
         return str_pad($order_number, $length, '0', STR_PAD_LEFT);
@@ -290,11 +286,6 @@ XML;
 
     private function xmlDataRequest(string $xml, string $url): string
     {
-        $client = new Client(['verify' => false]);
-        $response = $client->post($url, [
-            'form_params' => ['xmldata' => $xml],
-        ]);
-
-        return $response->getBody()->getContents();
+        return $this->httpPostForm($url, ['xmldata' => $xml]);
     }
 }

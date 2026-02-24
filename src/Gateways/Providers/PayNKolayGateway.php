@@ -26,10 +26,11 @@ use EvrenOnur\SanalPos\DTOs\Responses\SaleQueryResponse;
 use EvrenOnur\SanalPos\DTOs\Requests\SaleRequest;
 use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
 use EvrenOnur\SanalPos\DTOs\MerchantAuth;
-use GuzzleHttp\Client;
+use EvrenOnur\SanalPos\Support\MakesHttpRequests;
 
 class PayNKolayGateway implements VirtualPOSServiceInterface
 {
+    use MakesHttpRequests;
     private string $urlTest = 'https://paynkolaytest.nkolayislem.com.tr';
 
     private string $urlLive = 'https://paynkolay.nkolayislem.com.tr';
@@ -319,13 +320,6 @@ class PayNKolayGateway implements VirtualPOSServiceInterface
 
     private function formRequest(array $params, string $url): string
     {
-        try {
-            $client = new Client(['verify' => false]);
-            $resp = $client->post($url, ['form_params' => $params]);
-
-            return $resp->getBody()->getContents();
-        } catch (\Throwable $e) {
-            return '';
-        }
+        return $this->httpPostForm($url, $params);
     }
 }

@@ -23,10 +23,12 @@ use EvrenOnur\SanalPos\DTOs\Responses\SaleQueryResponse;
 use EvrenOnur\SanalPos\DTOs\Requests\SaleRequest;
 use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
 use EvrenOnur\SanalPos\DTOs\MerchantAuth;
-use GuzzleHttp\Client;
+use EvrenOnur\SanalPos\Support\MakesHttpRequests;
 
 class AkbankGateway implements VirtualPOSServiceInterface
 {
+    use MakesHttpRequests;
+
     private string $urlAPITest = 'https://apipre.akbank.com/api/v1/payment/virtualpos/transaction/process';
 
     private string $urlAPILive = 'https://api.akbank.com/api/v1/payment/virtualpos/transaction/process';
@@ -352,16 +354,10 @@ class AkbankGateway implements VirtualPOSServiceInterface
             $json = json_encode($params, JSON_UNESCAPED_UNICODE);
             $hash = $this->hmacHash($json, $auth->merchant_storekey);
 
-            $client = new Client(['verify' => false]);
-            $response = $client->post($url, [
-                'body' => $json,
-                'headers' => [
-                    'Content-Type' => 'application/json; charset=utf-8',
-                    'auth-hash' => $hash,
-                ],
+            return $this->httpPostRaw($url, $json, [
+                'Content-Type' => 'application/json; charset=utf-8',
+                'auth-hash' => $hash,
             ]);
-
-            return $response->getBody()->getContents();
         } catch (\Throwable $e) {
             return '';
         }
@@ -369,12 +365,7 @@ class AkbankGateway implements VirtualPOSServiceInterface
 
     private function formRequest(array $params, string $url): string
     {
-        $client = new Client(['verify' => false]);
-        $response = $client->post($url, [
-            'form_params' => $params,
-        ]);
-
-        return $response->getBody()->getContents();
+        return $this->httpPostForm($url, $params);
     }
 
     private function hmacHash(string $message, string $key): string

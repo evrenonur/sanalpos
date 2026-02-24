@@ -24,10 +24,11 @@ use EvrenOnur\SanalPos\DTOs\Responses\SaleQueryResponse;
 use EvrenOnur\SanalPos\DTOs\Requests\SaleRequest;
 use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
 use EvrenOnur\SanalPos\DTOs\MerchantAuth;
-use GuzzleHttp\Client;
+use EvrenOnur\SanalPos\Support\MakesHttpRequests;
 
 abstract class AbstractNestpayGateway implements VirtualPOSServiceInterface
 {
+    use MakesHttpRequests;
     protected string $urlAPITest = 'https://entegrasyon.asseco-see.com.tr/fim/api';
 
     protected string $urlAPILive = '';
@@ -366,15 +367,9 @@ abstract class AbstractNestpayGateway implements VirtualPOSServiceInterface
      */
     private function formRequest(array $params, string $url): string
     {
-        $client = new Client(['verify' => false]);
-        $response = $client->post($url, [
-            'form_params' => $params,
-            'headers' => [
-                'Content-Type' => 'application/x-www-form-urlencoded',
-            ],
+        return $this->httpPostForm($url, $params, [
+            'Content-Type' => 'application/x-www-form-urlencoded',
         ]);
-
-        return $response->getBody()->getContents();
     }
 
     /**
@@ -382,14 +377,8 @@ abstract class AbstractNestpayGateway implements VirtualPOSServiceInterface
      */
     private function xmlRequest(string $xml, string $url): string
     {
-        $client = new Client(['verify' => false]);
-        $response = $client->post($url, [
-            'form_params' => ['DATA' => $xml],
-            'headers' => [
-                'Content-Type' => 'application/x-www-form-urlencoded',
-            ],
+        return $this->httpPostForm($url, ['DATA' => $xml], [
+            'Content-Type' => 'application/x-www-form-urlencoded',
         ]);
-
-        return $response->getBody()->getContents();
     }
 }

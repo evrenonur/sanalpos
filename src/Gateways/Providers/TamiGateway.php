@@ -24,10 +24,11 @@ use EvrenOnur\SanalPos\DTOs\Responses\SaleQueryResponse;
 use EvrenOnur\SanalPos\DTOs\Requests\SaleRequest;
 use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
 use EvrenOnur\SanalPos\DTOs\MerchantAuth;
-use GuzzleHttp\Client;
+use EvrenOnur\SanalPos\Support\MakesHttpRequests;
 
 class TamiGateway implements VirtualPOSServiceInterface
 {
+    use MakesHttpRequests;
     private string $urlTest = 'https://sandbox-paymentapi.tami.com.tr';
 
     private string $urlLive = 'https://paymentapi.tami.com.tr';
@@ -341,16 +342,6 @@ class TamiGateway implements VirtualPOSServiceInterface
 
     private function jsonRequest(string $url, array $body, array $headers): string
     {
-        try {
-            $client = new Client(['verify' => false]);
-            $resp = $client->post($url, [
-                'json' => $body,
-                'headers' => $headers,
-            ]);
-
-            return $resp->getBody()->getContents();
-        } catch (\Throwable $e) {
-            return '';
-        }
+        return $this->httpPostJson($url, $body, $headers);
     }
 }

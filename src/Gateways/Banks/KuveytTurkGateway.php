@@ -23,10 +23,11 @@ use EvrenOnur\SanalPos\DTOs\Responses\SaleQueryResponse;
 use EvrenOnur\SanalPos\DTOs\Requests\SaleRequest;
 use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
 use EvrenOnur\SanalPos\DTOs\MerchantAuth;
-use GuzzleHttp\Client;
+use EvrenOnur\SanalPos\Support\MakesHttpRequests;
 
 class KuveytTurkGateway implements VirtualPOSServiceInterface
 {
+    use MakesHttpRequests;
     private string $urlNon3DTest = 'https://boatest.kuveytturk.com.tr/boa.virtualpos.services/Home/Non3DPayGate';
 
     private string $urlNon3DLive = 'https://sanalpos.kuveytturk.com.tr/ServiceGateWay/Home/Non3DPayGate';
@@ -47,14 +48,14 @@ class KuveytTurkGateway implements VirtualPOSServiceInterface
 
         $response = new SaleResponse(order_number: $request->order_number);
 
-        $amount = $this->toKurus($request->sale_info->amount);
-        $hashedPassword = $this->sha1Base64($auth->merchant_password);
-        $hash = $this->sha1Base64($auth->merchant_id . $request->order_number . $amount . $auth->merchant_user . $hashedPassword);
+        $amount = StringHelper::toKurus($request->sale_info->amount);
+        $hashedPassword = StringHelper::sha1Base64($auth->merchant_password);
+        $hash = StringHelper::sha1Base64($auth->merchant_id . $request->order_number . $amount . $auth->merchant_user . $hashedPassword);
 
         $xml = $this->buildSaleXml($request, $auth, $hash, $amount, 1);
 
         $url = $auth->test_platform ? $this->urlNon3DTest : $this->urlNon3DLive;
-        $resp = $this->xmlRequest($xml, $url);
+        $resp = $this->httpPostXml($url, $xml);
         $dic = StringHelper::xmlToDictionary($resp, 'VPosTransactionResponseContract');
 
         $response->private_response = $dic;
@@ -75,9 +76,9 @@ class KuveytTurkGateway implements VirtualPOSServiceInterface
     {
         $response = new SaleResponse(order_number: $request->order_number);
 
-        $amount = $this->toKurus($request->sale_info->amount);
-        $hashedPassword = $this->sha1Base64($auth->merchant_password);
-        $hash = $this->sha1Base64(
+        $amount = StringHelper::toKurus($request->sale_info->amount);
+        $hashedPassword = StringHelper::sha1Base64($auth->merchant_password);
+        $hash = StringHelper::sha1Base64(
             $auth->merchant_id . $request->order_number . $amount .
                 $request->payment_3d->return_url . $request->payment_3d->return_url .
                 $auth->merchant_user . $hashedPassword
@@ -86,7 +87,7 @@ class KuveytTurkGateway implements VirtualPOSServiceInterface
         $xml = $this->buildSaleXml($request, $auth, $hash, $amount, 3);
 
         $url = $auth->test_platform ? $this->url3DTest : $this->url3DLive;
-        $resp = $this->xmlRequest($xml, $url);
+        $resp = $this->httpPostXml($url, $xml);
 
         $response->private_response = ['htmlResponse' => $resp];
 
@@ -131,8 +132,8 @@ class KuveytTurkGateway implements VirtualPOSServiceInterface
         $currencyCode = $respDic['VPosMessage']['CurrencyCode'] ?? '0949';
         $md = $respDic['MD'] ?? '';
 
-        $hashedPassword = $this->sha1Base64($auth->merchant_password);
-        $hash = $this->sha1Base64($auth->merchant_id . $orderId . $amount . $auth->merchant_user . $hashedPassword);
+        $hashedPassword = StringHelper::sha1Base64($auth->merchant_password);
+        $hash = StringHelper::sha1Base64($auth->merchant_id . $orderId . $amount . $auth->merchant_user . $hashedPassword);
 
         $provXml = <<<XML
 <?xml version="1.0" encoding="utf-8"?>
@@ -159,7 +160,7 @@ class KuveytTurkGateway implements VirtualPOSServiceInterface
 XML;
 
         $provUrl = $auth->test_platform ? $this->url3DProvisionTest : $this->url3DProvisionLive;
-        $provResp = $this->xmlRequest($provXml, $provUrl);
+        $provResp = $this->httpPostXml($provUrl, $provXml);
         $provDic = StringHelper::xmlToDictionary($provResp, 'VPosTransactionResponseContract');
 
         $response->private_response['response_provision'] = $provDic;
@@ -217,6 +218,7 @@ XML;
         $expYear = substr((string) $request->sale_info->card_expiry_year, 2);
         $okUrl = $request->payment_3d?->return_url ?? '';
         $failUrl = $request->payment_3d?->return_url ?? '';
+        $cardType = StringHelper::detectCardType($request->sale_info->card_number);
 
         $xml = <<<XML
 <?xml version="1.0" encoding="utf-8"?>
@@ -238,33 +240,12 @@ XML;
 <CardNumber>{$request->sale_info->card_number}</CardNumber>
 <CardCVV2>{$request->sale_info->card_cvv}</CardCVV2>
 <CardHolderName>{$request->sale_info->card_name_surname}</CardHolderName>
-<CardType>MasterCard</CardType>
+<CardType>{$cardType}</CardType>
 <CardExpireDateYear>{$expYear}</CardExpireDateYear>
 <CardExpireDateMonth>{$expMonth}</CardExpireDateMonth>
 </KuveytTurkVPosMessage>
 XML;
 
         return $xml;
-    }
-
-    private function toKurus(float $amount): string
-    {
-        return str_replace([',', '.'], '', number_format($amount, 2, '.', ''));
-    }
-
-    private function sha1Base64(string $data): string
-    {
-        return base64_encode(hash('sha1', $data, true));
-    }
-
-    private function xmlRequest(string $xml, string $url): string
-    {
-        $client = new Client(['verify' => false]);
-        $response = $client->post($url, [
-            'body' => $xml,
-            'headers' => ['Content-Type' => 'application/xml; charset=utf-8'],
-        ]);
-
-        return $response->getBody()->getContents();
     }
 }
