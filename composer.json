@@ -1,6 +1,6 @@
 {
     "name": "evrenonur/sanalpos",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Türkiye'deki banka ve ödeme kuruluşlarının sanal POS entegrasyonlarını tek bir Laravel paketi altında birleştiren kütüphane",
     "keywords": ["laravel", "sanal-pos", "sanalpos", "payment", "pos", "turkey", "akbank", "garanti", "yapikredi", "isbank", "iyzico", "sipay"],
     "license": "MIT",
