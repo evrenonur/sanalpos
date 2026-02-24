@@ -3,31 +3,32 @@
 namespace EvrenOnur\SanalPos\Gateways\Banks;
 
 use EvrenOnur\SanalPos\Contracts\VirtualPOSServiceInterface;
+use EvrenOnur\SanalPos\DTOs\MerchantAuth;
+use EvrenOnur\SanalPos\DTOs\Requests\AdditionalInstallmentQueryRequest;
+use EvrenOnur\SanalPos\DTOs\Requests\AllInstallmentQueryRequest;
+use EvrenOnur\SanalPos\DTOs\Requests\BINInstallmentQueryRequest;
+use EvrenOnur\SanalPos\DTOs\Requests\CancelRequest;
+use EvrenOnur\SanalPos\DTOs\Requests\RefundRequest;
+use EvrenOnur\SanalPos\DTOs\Requests\Sale3DResponse;
+use EvrenOnur\SanalPos\DTOs\Requests\SaleQueryRequest;
+use EvrenOnur\SanalPos\DTOs\Requests\SaleRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\AdditionalInstallmentQueryResponse;
+use EvrenOnur\SanalPos\DTOs\Responses\AllInstallmentQueryResponse;
+use EvrenOnur\SanalPos\DTOs\Responses\BINInstallmentQueryResponse;
+use EvrenOnur\SanalPos\DTOs\Responses\CancelResponse;
+use EvrenOnur\SanalPos\DTOs\Responses\RefundResponse;
+use EvrenOnur\SanalPos\DTOs\Responses\SaleQueryResponse;
+use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
 use EvrenOnur\SanalPos\Enums\ResponseStatus;
 use EvrenOnur\SanalPos\Enums\SaleQueryResponseStatus;
 use EvrenOnur\SanalPos\Enums\SaleResponseStatus;
-use EvrenOnur\SanalPos\Support\StringHelper;
-use EvrenOnur\SanalPos\DTOs\Requests\AdditionalInstallmentQueryRequest;
-use EvrenOnur\SanalPos\DTOs\Responses\AdditionalInstallmentQueryResponse;
-use EvrenOnur\SanalPos\DTOs\Requests\AllInstallmentQueryRequest;
-use EvrenOnur\SanalPos\DTOs\Responses\AllInstallmentQueryResponse;
-use EvrenOnur\SanalPos\DTOs\Requests\BINInstallmentQueryRequest;
-use EvrenOnur\SanalPos\DTOs\Responses\BINInstallmentQueryResponse;
-use EvrenOnur\SanalPos\DTOs\Requests\CancelRequest;
-use EvrenOnur\SanalPos\DTOs\Responses\CancelResponse;
-use EvrenOnur\SanalPos\DTOs\Requests\RefundRequest;
-use EvrenOnur\SanalPos\DTOs\Responses\RefundResponse;
-use EvrenOnur\SanalPos\DTOs\Requests\Sale3DResponse;
-use EvrenOnur\SanalPos\DTOs\Requests\SaleQueryRequest;
-use EvrenOnur\SanalPos\DTOs\Responses\SaleQueryResponse;
-use EvrenOnur\SanalPos\DTOs\Requests\SaleRequest;
-use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
-use EvrenOnur\SanalPos\DTOs\MerchantAuth;
 use EvrenOnur\SanalPos\Support\MakesHttpRequests;
+use EvrenOnur\SanalPos\Support\StringHelper;
 
 class QNBFinansbankGateway implements VirtualPOSServiceInterface
 {
     use MakesHttpRequests;
+
     private string $urlAPITest = 'https://vpostest.qnbfinansbank.com/Gateway/Default.aspx';
 
     private string $urlAPILive = 'https://vpos.qnbfinansbank.com/Gateway/Default.aspx';

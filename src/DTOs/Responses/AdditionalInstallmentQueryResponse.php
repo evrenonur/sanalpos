@@ -4,7 +4,6 @@ namespace EvrenOnur\SanalPos\DTOs\Responses;
 
 use EvrenOnur\SanalPos\DTOs\AdditionalInstallment;
 
-
 class AdditionalInstallmentQueryResponse
 {
     public function __construct(

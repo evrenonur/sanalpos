@@ -1,18 +1,18 @@
 <?php
 
+use EvrenOnur\SanalPos\DTOs\AllInstallment;
+use EvrenOnur\SanalPos\DTOs\Bank;
+use EvrenOnur\SanalPos\DTOs\CustomerInfo;
+use EvrenOnur\SanalPos\DTOs\MerchantAuth;
+use EvrenOnur\SanalPos\DTOs\Payment3DConfig;
+use EvrenOnur\SanalPos\DTOs\Requests\CancelRequest;
+use EvrenOnur\SanalPos\DTOs\Requests\RefundRequest;
+use EvrenOnur\SanalPos\DTOs\Requests\SaleRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
+use EvrenOnur\SanalPos\DTOs\SaleInfo;
 use EvrenOnur\SanalPos\Enums\Country;
 use EvrenOnur\SanalPos\Enums\Currency;
 use EvrenOnur\SanalPos\Enums\SaleResponseStatus;
-use EvrenOnur\SanalPos\DTOs\AllInstallment;
-use EvrenOnur\SanalPos\DTOs\Bank;
-use EvrenOnur\SanalPos\DTOs\Requests\CancelRequest;
-use EvrenOnur\SanalPos\DTOs\CustomerInfo;
-use EvrenOnur\SanalPos\DTOs\Payment3DConfig;
-use EvrenOnur\SanalPos\DTOs\Requests\RefundRequest;
-use EvrenOnur\SanalPos\DTOs\SaleInfo;
-use EvrenOnur\SanalPos\DTOs\Requests\SaleRequest;
-use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
-use EvrenOnur\SanalPos\DTOs\MerchantAuth;
 
 it('SaleRequest doğru şekilde oluşturulur', function () {
     $request = new SaleRequest(

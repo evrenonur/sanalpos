@@ -10,28 +10,27 @@
  * ve validasyonların çalıştığını test eder. Gerçek banka API çağrıları yapılmaz.
  */
 
-use EvrenOnur\SanalPos\Enums\Country;
-use EvrenOnur\SanalPos\Enums\Currency;
-use EvrenOnur\SanalPos\Enums\ResponseStatus;
-use EvrenOnur\SanalPos\Enums\SaleResponseStatus;
+use EvrenOnur\SanalPos\Contracts\VirtualPOSServiceInterface;
 use EvrenOnur\SanalPos\DTOs\CustomerInfo;
 use EvrenOnur\SanalPos\DTOs\MerchantAuth;
 use EvrenOnur\SanalPos\DTOs\Payment3DConfig;
-use EvrenOnur\SanalPos\DTOs\SaleInfo;
 use EvrenOnur\SanalPos\DTOs\Requests\BINInstallmentQueryRequest;
 use EvrenOnur\SanalPos\DTOs\Requests\CancelRequest;
 use EvrenOnur\SanalPos\DTOs\Requests\RefundRequest;
 use EvrenOnur\SanalPos\DTOs\Requests\Sale3DResponse;
 use EvrenOnur\SanalPos\DTOs\Requests\SaleRequest;
-use EvrenOnur\SanalPos\DTOs\Requests\AllInstallmentQueryRequest;
-use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
+use EvrenOnur\SanalPos\DTOs\Responses\BINInstallmentQueryResponse;
 use EvrenOnur\SanalPos\DTOs\Responses\CancelResponse;
 use EvrenOnur\SanalPos\DTOs\Responses\RefundResponse;
-use EvrenOnur\SanalPos\DTOs\Responses\BINInstallmentQueryResponse;
+use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
+use EvrenOnur\SanalPos\DTOs\SaleInfo;
+use EvrenOnur\SanalPos\Enums\Country;
+use EvrenOnur\SanalPos\Enums\Currency;
+use EvrenOnur\SanalPos\Enums\ResponseStatus;
+use EvrenOnur\SanalPos\Enums\SaleResponseStatus;
 use EvrenOnur\SanalPos\SanalPosClient;
 use EvrenOnur\SanalPos\Services\BankService;
 use EvrenOnur\SanalPos\Support\ValidationHelper;
-use EvrenOnur\SanalPos\Contracts\VirtualPOSServiceInterface;
 
 // =====================================================
 // Test Ortamı Bilgileri (vpos.com.tr/docs/test-ortami-bilgileri)
@@ -948,11 +947,11 @@ it('allBankList üzerinden test ortamı bankaları filtrelenebilir', function ()
     $testBankCodes = ['0062', '0064', '9990'];
 
     $filtered = SanalPosClient::allBankList(
-        fn($bank) => in_array($bank->bank_code, $testBankCodes)
+        fn ($bank) => in_array($bank->bank_code, $testBankCodes)
     );
 
     expect($filtered)->toHaveCount(3);
-    $codes = array_map(fn($b) => $b->bank_code, $filtered);
+    $codes = array_map(fn ($b) => $b->bank_code, $filtered);
     expect($codes)->toContain('0062')
         ->and($codes)->toContain('0064')
         ->and($codes)->toContain('9990');

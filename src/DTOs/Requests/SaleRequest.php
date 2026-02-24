@@ -2,10 +2,9 @@
 
 namespace EvrenOnur\SanalPos\DTOs\Requests;
 
-use EvrenOnur\SanalPos\DTOs\SaleInfo;
 use EvrenOnur\SanalPos\DTOs\CustomerInfo;
 use EvrenOnur\SanalPos\DTOs\Payment3DConfig;
-
+use EvrenOnur\SanalPos\DTOs\SaleInfo;
 
 class SaleRequest
 {

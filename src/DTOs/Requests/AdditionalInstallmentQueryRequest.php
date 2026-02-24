@@ -4,7 +4,6 @@ namespace EvrenOnur\SanalPos\DTOs\Requests;
 
 use EvrenOnur\SanalPos\DTOs\SaleInfo;
 
-
 class AdditionalInstallmentQueryRequest
 {
     public function __construct(

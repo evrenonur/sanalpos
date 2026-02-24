@@ -4,7 +4,6 @@ namespace EvrenOnur\SanalPos\DTOs\Responses;
 
 use EvrenOnur\SanalPos\DTOs\Installment;
 
-
 class BINInstallmentQueryResponse
 {
     public function __construct(
