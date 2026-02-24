@@ -51,7 +51,7 @@ class TamiGateway implements VirtualPOSServiceInterface
             'paymentGroup' => 'OTHER',
             'card' => [
                 'cardHolderName' => $request->sale_info->card_name_surname,
-                'card_number' => $request->sale_info->card_number,
+                'cardNumber' => $request->sale_info->card_number,
                 'expireMonth' => str_pad($request->sale_info->card_expiry_month, 2, '0', STR_PAD_LEFT),
                 'expireYear' => (string) $request->sale_info->card_expiry_year,
                 'cvc' => $request->sale_info->card_cvv,
@@ -63,7 +63,7 @@ class TamiGateway implements VirtualPOSServiceInterface
                 'email' => $request->invoice_info?->email_address ?? '',
                 'ip' => $request->customer_ip_address,
                 'identityNumber' => $request->invoice_info?->tax_number ?? '11111111111',
-                'phone_number' => $request->invoice_info?->phone_number ?? '',
+                'phoneNumber' => $request->invoice_info?->phone_number ?? '',
                 'city' => $request->invoice_info?->city ?? '',
                 'country' => 'Turkey',
             ],

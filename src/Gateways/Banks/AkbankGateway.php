@@ -65,7 +65,7 @@ class AkbankGateway implements VirtualPOSServiceInterface
             ],
             'card' => [
                 'cardHolderName' => $request->sale_info->card_name_surname,
-                'card_number' => $request->sale_info->card_number,
+                'cardNumber' => $request->sale_info->card_number,
                 'cvv2' => $request->sale_info->card_cvv,
                 'expireDate' => str_pad($request->sale_info->card_expiry_month, 2, '0', STR_PAD_LEFT) . substr((string) $request->sale_info->card_expiry_year, 2),
             ],
@@ -76,7 +76,7 @@ class AkbankGateway implements VirtualPOSServiceInterface
                 'installCount' => $request->sale_info->installment,
             ],
             'customer' => [
-                'email_address' => $email,
+                'emailAddress' => $email,
                 'ipAddress' => $request->customer_ip_address,
             ],
         ];
@@ -131,7 +131,7 @@ class AkbankGateway implements VirtualPOSServiceInterface
             'installCount' => (string) $request->sale_info->installment,
             'okUrl' => $request->payment_3d->return_url,
             'failUrl' => $request->payment_3d->return_url,
-            'email_address' => $email,
+            'emailAddress' => $email,
             'creditCard' => $request->sale_info->card_number,
             'expiredDate' => str_pad($request->sale_info->card_expiry_month, 2, '0', STR_PAD_LEFT) . substr((string) $request->sale_info->card_expiry_year, 2),
             'cvv' => $request->sale_info->card_cvv,
@@ -143,7 +143,7 @@ class AkbankGateway implements VirtualPOSServiceInterface
         $hashItems = $req['paymentModel'] . $req['txnCode'] . $req['merchantSafeId'] .
             $req['terminalSafeId'] . $req['orderId'] . $req['lang'] .
             $req['amount'] . $req['currencyCode'] . $req['installCount'] .
-            $req['okUrl'] . $req['failUrl'] . $req['email_address'] .
+            $req['okUrl'] . $req['failUrl'] . $req['emailAddress'] .
             $req['creditCard'] . $req['expiredDate'] . $req['cvv'] .
             $req['randomNumber'] . $req['requestDateTime'];
 
