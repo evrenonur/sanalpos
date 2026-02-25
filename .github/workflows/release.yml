@@ -26,165 +26,26 @@ jobs:
           extensions: simplexml, openssl, json
           coverage: none
 
-      - name: Install dependencies
+      - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist
 
       - name: Run tests
         run: vendor/bin/pest --testdox
 
-      - name: Determine next version
-        id: version
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install release-it
+        run: npm install -g release-it @release-it/conventional-changelog
+
+      - name: Configure Git
         run: |
-          # Son tag'i al
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-          echo "Latest tag: $LATEST_TAG"
-
-          # Versiyon parçalarını ayır
-          VERSION=${LATEST_TAG#v}
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
-
-          # Son tag'den bu yana commit mesajlarını analiz et
-          COMMITS=$(git log ${LATEST_TAG}..HEAD --pretty=format:"%s" 2>/dev/null || git log --pretty=format:"%s")
-
-          if [ -z "$COMMITS" ]; then
-            echo "skip=true" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          # Versiyon artışını belirle
-          BUMP="none"
-
-          while IFS= read -r msg; do
-            # BREAKING CHANGE kontrolü
-            if echo "$msg" | grep -qE "^(feat|fix|refactor|perf|chore|docs|style|test|build|ci)(\(.+\))?!:" || \
-               echo "$msg" | grep -q "BREAKING CHANGE"; then
-              BUMP="major"
-              break
-            fi
-            # feat → minor
-            if echo "$msg" | grep -qE "^feat(\(.+\))?:"; then
-              if [ "$BUMP" != "major" ]; then
-                BUMP="minor"
-              fi
-            fi
-            # fix, perf, refactor → patch
-            if echo "$msg" | grep -qE "^(fix|perf|refactor)(\(.+\))?:"; then
-              if [ "$BUMP" = "none" ]; then
-                BUMP="patch"
-              fi
-            fi
-          done <<< "$COMMITS"
-
-          if [ "$BUMP" = "none" ]; then
-            echo "skip=true" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          # Yeni versiyonu hesapla
-          case $BUMP in
-            major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
-            minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
-            patch) PATCH=$((PATCH + 1)) ;;
-          esac
-
-          NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
-          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "bump=$BUMP" >> $GITHUB_OUTPUT
-          echo "skip=false" >> $GITHUB_OUTPUT
-          echo "New version: $NEW_VERSION ($BUMP)"
-
-      - name: Generate changelog
-        if: steps.version.outputs.skip != 'true'
-        id: changelog
-        run: |
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          NEW_VERSION=${{ steps.version.outputs.new_version }}
-
-          {
-            echo "changelog<<CHANGELOG_EOF"
-
-            # Commit'leri kategorize et
-            if [ -n "$LATEST_TAG" ]; then
-              RANGE="${LATEST_TAG}..HEAD"
-            else
-              RANGE="HEAD"
-            fi
-
-            # Features
-            FEATS=$(git log $RANGE --pretty=format:"- %s (%h)" --grep="^feat" --extended-regexp 2>/dev/null)
-            if [ -n "$FEATS" ]; then
-              echo "### 🚀 Yeni Özellikler"
-              echo "$FEATS"
-              echo ""
-            fi
-
-            # Fixes
-            FIXES=$(git log $RANGE --pretty=format:"- %s (%h)" --grep="^fix" --extended-regexp 2>/dev/null)
-            if [ -n "$FIXES" ]; then
-              echo "### 🐛 Hata Düzeltmeleri"
-              echo "$FIXES"
-              echo ""
-            fi
-
-            # Performance
-            PERFS=$(git log $RANGE --pretty=format:"- %s (%h)" --grep="^perf" --extended-regexp 2>/dev/null)
-            if [ -n "$PERFS" ]; then
-              echo "### ⚡ Performans İyileştirmeleri"
-              echo "$PERFS"
-              echo ""
-            fi
-
-            # Refactors
-            REFACTORS=$(git log $RANGE --pretty=format:"- %s (%h)" --grep="^refactor" --extended-regexp 2>/dev/null)
-            if [ -n "$REFACTORS" ]; then
-              echo "### ♻️ Yeniden Düzenleme"
-              echo "$REFACTORS"
-              echo ""
-            fi
-
-            # Docs
-            DOCS=$(git log $RANGE --pretty=format:"- %s (%h)" --grep="^docs" --extended-regexp 2>/dev/null)
-            if [ -n "$DOCS" ]; then
-              echo "### 📝 Dokümantasyon"
-              echo "$DOCS"
-              echo ""
-            fi
-
-            # Chores & CI
-            CHORES=$(git log $RANGE --pretty=format:"- %s (%h)" --grep="^chore\|^ci\|^build" --extended-regexp 2>/dev/null)
-            if [ -n "$CHORES" ]; then
-              echo "### 🔧 Bakım"
-              echo "$CHORES"
-              echo ""
-            fi
-
-            echo "CHANGELOG_EOF"
-          } >> $GITHUB_OUTPUT
-
-      - name: Update composer.json version
-        if: steps.version.outputs.skip != 'true'
-        run: |
-          NEW_VERSION=${{ steps.version.outputs.new_version }}
-          VERSION_NUM=${NEW_VERSION#v}
-          # composer.json'daki versiyon alanını güncelle
-          sed -i "s/\"version\": \".*\"/\"version\": \"${VERSION_NUM}\"/" composer.json
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add composer.json
-          git commit -m "chore(release): bump version to ${NEW_VERSION} [skip ci]"
-          git push
 
-      - name: Create tag and release
-        if: steps.version.outputs.skip != 'true'
+      - name: Release
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CHANGELOG: ${{ steps.changelog.outputs.changelog }}
-        run: |
-          NEW_VERSION=${{ steps.version.outputs.new_version }}
-          git tag -a $NEW_VERSION -m "Release $NEW_VERSION"
-          git push origin $NEW_VERSION
-
-          gh release create $NEW_VERSION \
-            --title "$NEW_VERSION" \
-            --notes "$CHANGELOG" \
-            --latest
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: release-it --ci
