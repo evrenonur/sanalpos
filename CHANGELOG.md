@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.4](https://github.com/evrenonur/sanalpos/compare/v1.0.3...v1.0.4) (2026-02-25)
+
+### 🐛 Hata Düzeltmeleri
+
+* **ci:** release workflow changelog interpolation shell syntax hatası düzeltildi\n\nChangelog içeriği doğrudan shell'e interpolate edildiğinde parantez\niçeren commit hash'leri syntax error oluşturuyordu. Changelog artık\nenvironment variable olarak geçiriliyor." ([8241435](https://github.com/evrenonur/sanalpos/commit/824143579cef3a29f404c2afa6b3bf71b2f291b9))
+
 Tüm önemli değişiklikler bu dosyada belgelenir.
 
 Bu proje [Conventional Commits](https://www.conventionalcommits.org/) standardını takip eder
