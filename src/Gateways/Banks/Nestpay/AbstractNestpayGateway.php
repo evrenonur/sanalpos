@@ -30,14 +30,6 @@ abstract class AbstractNestpayGateway implements VirtualPOSServiceInterface
 {
     use MakesHttpRequests;
 
-    protected string $urlAPITest = 'https://entegrasyon.asseco-see.com.tr/fim/api';
-
-    protected string $urlAPILive = '';
-
-    protected string $url3DTest = 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate';
-
-    protected string $url3DLive = '';
-
     abstract protected function getUrlAPILive(): string;
 
     abstract protected function getUrl3DLive(): string;
@@ -219,7 +211,7 @@ abstract class AbstractNestpayGateway implements VirtualPOSServiceInterface
             }
 
             if (isset($extra['TRANS_STAT'])) {
-                $response->transactionStatu = match ($extra['TRANS_STAT']) {
+                $response->transactionStatus = match ($extra['TRANS_STAT']) {
                     'S' => SaleQueryTransactionStatus::Paid,
                     'V' => SaleQueryTransactionStatus::Voided,
                     default => null,

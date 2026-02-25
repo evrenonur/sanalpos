@@ -173,10 +173,10 @@ it('detectCardType Troy kartlarını tanır', function () {
     expect(StringHelper::detectCardType('9792000000000000'))->toBe('Troy');
 });
 
-it('detectCardType bilinmeyen kartlar için MasterCard döner', function () {
-    expect(StringHelper::detectCardType('1234567890123456'))->toBe('MasterCard');
+it('detectCardType bilinmeyen kartlar için Unknown döner', function () {
+    expect(StringHelper::detectCardType('1234567890123456'))->toBe('Unknown');
 });
 
-it('detectCardType boş string için MasterCard döner', function () {
-    expect(StringHelper::detectCardType(''))->toBe('MasterCard');
+it('detectCardType boş string için Unknown döner', function () {
+    expect(StringHelper::detectCardType(''))->toBe('Unknown');
 });

@@ -518,7 +518,7 @@ it('SaleQueryResponse toArray dönüşümü doğru çalışır', function () {
 
     $array = $response->toArray();
 
-    expect($array['statu'])->toBe(SaleQueryResponseStatus::Found->value)
+    expect($array['status'])->toBe(SaleQueryResponseStatus::Found->value)
         ->and($array['order_number'])->toBe('ORD-QUERY-001')
         ->and($array['amount'])->toBe(150.75)
         ->and($array['transactionDate'])->toBe('2025-01-15 14:30:00');

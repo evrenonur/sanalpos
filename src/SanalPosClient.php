@@ -23,7 +23,6 @@ use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
 use EvrenOnur\SanalPos\Services\BankService;
 use EvrenOnur\SanalPos\Support\StringHelper;
 use EvrenOnur\SanalPos\Support\ValidationHelper;
-use InvalidArgumentException;
 
 class SanalPosClient
 {
@@ -52,10 +51,6 @@ class SanalPosClient
     public static function sale3DResponse(Sale3DResponse $request, MerchantAuth $auth): SaleResponse
     {
         ValidationHelper::validateAuth($auth);
-
-        if ($auth->bank_code === '0067' && $request->currency === null) {
-            throw new InvalidArgumentException('currency alanı Yapı Kredi bankası için zorunludur');
-        }
 
         // JArray normalizasyonu (array içinde array varsa ilk elemanı al)
         if (is_array($request->responseArray)) {

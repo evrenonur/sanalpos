@@ -2,26 +2,19 @@
 
 namespace EvrenOnur\SanalPos\Gateways\Providers;
 
-use EvrenOnur\SanalPos\Contracts\VirtualPOSServiceInterface;
 use EvrenOnur\SanalPos\DTOs\MerchantAuth;
-use EvrenOnur\SanalPos\DTOs\Requests\AdditionalInstallmentQueryRequest;
-use EvrenOnur\SanalPos\DTOs\Requests\AllInstallmentQueryRequest;
 use EvrenOnur\SanalPos\DTOs\Requests\BINInstallmentQueryRequest;
 use EvrenOnur\SanalPos\DTOs\Requests\CancelRequest;
 use EvrenOnur\SanalPos\DTOs\Requests\RefundRequest;
 use EvrenOnur\SanalPos\DTOs\Requests\Sale3DResponse;
-use EvrenOnur\SanalPos\DTOs\Requests\SaleQueryRequest;
 use EvrenOnur\SanalPos\DTOs\Requests\SaleRequest;
-use EvrenOnur\SanalPos\DTOs\Responses\AdditionalInstallmentQueryResponse;
-use EvrenOnur\SanalPos\DTOs\Responses\AllInstallmentQueryResponse;
 use EvrenOnur\SanalPos\DTOs\Responses\BINInstallmentQueryResponse;
 use EvrenOnur\SanalPos\DTOs\Responses\CancelResponse;
 use EvrenOnur\SanalPos\DTOs\Responses\RefundResponse;
-use EvrenOnur\SanalPos\DTOs\Responses\SaleQueryResponse;
 use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
 use EvrenOnur\SanalPos\Enums\ResponseStatus;
-use EvrenOnur\SanalPos\Enums\SaleQueryResponseStatus;
 use EvrenOnur\SanalPos\Enums\SaleResponseStatus;
+use EvrenOnur\SanalPos\Gateways\AbstractGateway;
 use EvrenOnur\SanalPos\Infrastructure\Iyzico\IyzicoHashGenerator;
 use EvrenOnur\SanalPos\Infrastructure\Iyzico\IyzicoHttpClient;
 use EvrenOnur\SanalPos\Infrastructure\Iyzico\IyzicoOptions;
@@ -39,7 +32,7 @@ use EvrenOnur\SanalPos\Infrastructure\Iyzico\Request\RetrieveInstallmentInfoRequ
 /**
  * Iyzico sanal POS gateway implementasyonu.
  */
-class IyzicoGateway implements VirtualPOSServiceInterface
+class IyzicoGateway extends AbstractGateway
 {
     private string $urlAPITest = 'https://sandbox-api.iyzipay.com';
 
@@ -349,24 +342,6 @@ class IyzicoGateway implements VirtualPOSServiceInterface
         }
 
         return $response;
-    }
-
-    public function allInstallmentQuery(AllInstallmentQueryRequest $request, MerchantAuth $auth): AllInstallmentQueryResponse
-    {
-        return new AllInstallmentQueryResponse(confirm: false);
-    }
-
-    public function additionalInstallmentQuery(AdditionalInstallmentQueryRequest $request, MerchantAuth $auth): AdditionalInstallmentQueryResponse
-    {
-        return new AdditionalInstallmentQueryResponse(confirm: false);
-    }
-
-    public function saleQuery(SaleQueryRequest $request, MerchantAuth $auth): SaleQueryResponse
-    {
-        return new SaleQueryResponse(
-            status: SaleQueryResponseStatus::Error,
-            message: 'Bu sanal pos için satış sorgulama işlemi şuan desteklenmiyor'
-        );
     }
 
     // --- Private helpers ---
