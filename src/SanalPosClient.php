@@ -53,10 +53,6 @@ class SanalPosClient
     {
         ValidationHelper::validateAuth($auth);
 
-        if ($auth->bank_code === '0067' && $request->currency === null) {
-            throw new InvalidArgumentException('currency alanı Yapı Kredi bankası için zorunludur');
-        }
-
         // JArray normalizasyonu (array içinde array varsa ilk elemanı al)
         if (is_array($request->responseArray)) {
             foreach ($request->responseArray as $key => $value) {

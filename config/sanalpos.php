@@ -29,4 +29,11 @@ return [
     */
     'verify_ssl' => env('SANALPOS_VERIFY_SSL', true),
 
+    /*
+    |--------------------------------------------------------------------------
+    | HTTP Bağlantı Zaman Aşımı (saniye)
+    |--------------------------------------------------------------------------
+    */
+    'connect_timeout' => env('SANALPOS_CONNECT_TIMEOUT', 10),
+
 ];

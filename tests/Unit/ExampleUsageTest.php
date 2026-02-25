@@ -518,7 +518,7 @@ it('SaleQueryResponse toArray dönüşümü doğru çalışır', function () {
 
     $array = $response->toArray();
 
-    expect($array['statu'])->toBe(SaleQueryResponseStatus::Found->value)
+    expect($array['status'])->toBe(SaleQueryResponseStatus::Found->value)
         ->and($array['order_number'])->toBe('ORD-QUERY-001')
         ->and($array['amount'])->toBe(150.75)
         ->and($array['transactionDate'])->toBe('2025-01-15 14:30:00');
@@ -531,7 +531,7 @@ it('SaleQueryResponse toArray dönüşümü doğru çalışır', function () {
 it('ValidationHelper sale validasyonu boş alanlar için exception fırlatır', function () {
     $request = new SaleRequest(order_number: '');
 
-    expect(fn () => ValidationHelper::validateSaleRequest($request))
+    expect(fn() => ValidationHelper::validateSaleRequest($request))
         ->toThrow(\InvalidArgumentException::class, 'order_number alanı zorunludur');
 });
 
@@ -541,7 +541,7 @@ it('ValidationHelper sale validasyonu eksik sale_info için exception fırlatır
         customer_ip_address: '127.0.0.1',
     );
 
-    expect(fn () => ValidationHelper::validateSaleRequest($request))
+    expect(fn() => ValidationHelper::validateSaleRequest($request))
         ->toThrow(\InvalidArgumentException::class, 'sale_info alanı zorunludur');
 });
 
@@ -559,7 +559,7 @@ it('ValidationHelper sale validasyonu eksik invoice_info için exception fırlat
         ),
     );
 
-    expect(fn () => ValidationHelper::validateSaleRequest($request))
+    expect(fn() => ValidationHelper::validateSaleRequest($request))
         ->toThrow(\InvalidArgumentException::class, 'invoice_info alanı zorunludur');
 });
 
@@ -579,28 +579,28 @@ it('ValidationHelper geçersiz kart numarası için exception fırlatır', funct
         shipping_info: new CustomerInfo(name: 'Test'),
     );
 
-    expect(fn () => ValidationHelper::validateSaleRequest($request))
+    expect(fn() => ValidationHelper::validateSaleRequest($request))
         ->toThrow(\InvalidArgumentException::class, 'Geçersiz kart numarası');
 });
 
 it('ValidationHelper cancel validasyonu her iki alan boşsa exception fırlatır', function () {
     $request = new CancelRequest(order_number: '', transaction_id: '');
 
-    expect(fn () => ValidationHelper::validateCancelRequest($request))
+    expect(fn() => ValidationHelper::validateCancelRequest($request))
         ->toThrow(\InvalidArgumentException::class, 'order_number veya transaction_id alanlarından en az biri zorunludur');
 });
 
 it('ValidationHelper refund validasyonu sıfır tutar için exception fırlatır', function () {
     $request = new RefundRequest(order_number: 'ORD-001', refund_amount: 0);
 
-    expect(fn () => ValidationHelper::validateRefundRequest($request))
+    expect(fn() => ValidationHelper::validateRefundRequest($request))
         ->toThrow(\InvalidArgumentException::class, 'refund_amount sıfırdan büyük olmalıdır');
 });
 
 it('ValidationHelper BIN validasyonu kısa BIN için exception fırlatır', function () {
     $request = new BINInstallmentQueryRequest(BIN: '411');
 
-    expect(fn () => ValidationHelper::validateBINInstallmentQuery($request))
+    expect(fn() => ValidationHelper::validateBINInstallmentQuery($request))
         ->toThrow(\InvalidArgumentException::class, 'BIN 6-8 karakter olmalıdır');
 });
 
@@ -643,7 +643,7 @@ it('SanalPosClient sale boş bank_code için exception fırlatır', function () 
     );
     $auth = new MerchantAuth(bank_code: '');
 
-    expect(fn () => SanalPosClient::sale($request, $auth))
+    expect(fn() => SanalPosClient::sale($request, $auth))
         ->toThrow(\InvalidArgumentException::class);
 });
 
@@ -651,7 +651,7 @@ it('SanalPosClient cancel boş alanlar için exception fırlatır', function () 
     $request = new CancelRequest;
     $auth = new MerchantAuth(bank_code: '0062');
 
-    expect(fn () => SanalPosClient::cancel($request, $auth))
+    expect(fn() => SanalPosClient::cancel($request, $auth))
         ->toThrow(\InvalidArgumentException::class);
 });
 
@@ -659,7 +659,7 @@ it('SanalPosClient refund sıfır tutar için exception fırlatır', function ()
     $request = new RefundRequest(order_number: 'ORD-001', refund_amount: 0);
     $auth = new MerchantAuth(bank_code: '0062');
 
-    expect(fn () => SanalPosClient::refund($request, $auth))
+    expect(fn() => SanalPosClient::refund($request, $auth))
         ->toThrow(\InvalidArgumentException::class);
 });
 
@@ -667,7 +667,7 @@ it('SanalPosClient sale3DResponse Yapı Kredi için currency zorunlu', function 
     $response = new Sale3DResponse(responseArray: ['mdStatus' => '1']);
     $auth = new MerchantAuth(bank_code: '0067');
 
-    expect(fn () => SanalPosClient::sale3DResponse($response, $auth))
+    expect(fn() => SanalPosClient::sale3DResponse($response, $auth))
         ->toThrow(\InvalidArgumentException::class, 'currency alanı Yapı Kredi bankası için zorunludur');
 });
 
@@ -690,7 +690,7 @@ it('SanalPosClient allBankList tüm bankaları döner', function () {
 
 it('SanalPosClient allBankList filtre ile çalışır', function () {
     // Sadece taksit API desteği olan bankalar
-    $banks = SanalPosClient::allBankList(fn ($bank) => $bank->installment_api === true);
+    $banks = SanalPosClient::allBankList(fn($bank) => $bank->installment_api === true);
 
     expect($banks)->toBeArray();
     foreach ($banks as $bank) {
@@ -699,7 +699,7 @@ it('SanalPosClient allBankList filtre ile çalışır', function () {
 });
 
 it('SanalPosClient allBankList collective_vpos filtresiyle çalışır', function () {
-    $collectiveBanks = SanalPosClient::allBankList(fn ($bank) => $bank->collective_vpos === true);
+    $collectiveBanks = SanalPosClient::allBankList(fn($bank) => $bank->collective_vpos === true);
 
     expect($collectiveBanks)->toBeArray();
     foreach ($collectiveBanks as $bank) {

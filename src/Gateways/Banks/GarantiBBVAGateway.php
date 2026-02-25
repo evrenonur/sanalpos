@@ -2,32 +2,16 @@
 
 namespace EvrenOnur\SanalPos\Gateways\Banks;
 
-use EvrenOnur\SanalPos\Contracts\VirtualPOSServiceInterface;
 use EvrenOnur\SanalPos\DTOs\MerchantAuth;
-use EvrenOnur\SanalPos\DTOs\Requests\AdditionalInstallmentQueryRequest;
-use EvrenOnur\SanalPos\DTOs\Requests\AllInstallmentQueryRequest;
-use EvrenOnur\SanalPos\DTOs\Requests\BINInstallmentQueryRequest;
-use EvrenOnur\SanalPos\DTOs\Requests\CancelRequest;
-use EvrenOnur\SanalPos\DTOs\Requests\RefundRequest;
 use EvrenOnur\SanalPos\DTOs\Requests\Sale3DResponse;
-use EvrenOnur\SanalPos\DTOs\Requests\SaleQueryRequest;
 use EvrenOnur\SanalPos\DTOs\Requests\SaleRequest;
-use EvrenOnur\SanalPos\DTOs\Responses\AdditionalInstallmentQueryResponse;
-use EvrenOnur\SanalPos\DTOs\Responses\AllInstallmentQueryResponse;
-use EvrenOnur\SanalPos\DTOs\Responses\BINInstallmentQueryResponse;
-use EvrenOnur\SanalPos\DTOs\Responses\CancelResponse;
-use EvrenOnur\SanalPos\DTOs\Responses\RefundResponse;
-use EvrenOnur\SanalPos\DTOs\Responses\SaleQueryResponse;
 use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
-use EvrenOnur\SanalPos\Enums\ResponseStatus;
-use EvrenOnur\SanalPos\Enums\SaleQueryResponseStatus;
 use EvrenOnur\SanalPos\Enums\SaleResponseStatus;
-use EvrenOnur\SanalPos\Support\MakesHttpRequests;
+use EvrenOnur\SanalPos\Gateways\AbstractGateway;
 use EvrenOnur\SanalPos\Support\StringHelper;
 
-class GarantiBBVAGateway implements VirtualPOSServiceInterface
+class GarantiBBVAGateway extends AbstractGateway
 {
-    use MakesHttpRequests;
 
     private string $urlAPITest = 'https://sanalposprovtest.garantibbva.com.tr/VPServlet';
 
@@ -282,36 +266,6 @@ class GarantiBBVAGateway implements VirtualPOSServiceInterface
             order_number: $ra['oid'] ?? '',
             private_response: $dic,
         );
-    }
-
-    public function cancel(CancelRequest $request, MerchantAuth $auth): CancelResponse
-    {
-        return new CancelResponse(status: ResponseStatus::Error, message: 'Bu banka için iptal metodu tanımlanmamış!');
-    }
-
-    public function refund(RefundRequest $request, MerchantAuth $auth): RefundResponse
-    {
-        return new RefundResponse(status: ResponseStatus::Error, message: 'Bu banka için iade metodu tanımlanmamış!');
-    }
-
-    public function binInstallmentQuery(BINInstallmentQueryRequest $request, MerchantAuth $auth): BINInstallmentQueryResponse
-    {
-        return new BINInstallmentQueryResponse(confirm: false);
-    }
-
-    public function allInstallmentQuery(AllInstallmentQueryRequest $request, MerchantAuth $auth): AllInstallmentQueryResponse
-    {
-        return new AllInstallmentQueryResponse(confirm: false);
-    }
-
-    public function additionalInstallmentQuery(AdditionalInstallmentQueryRequest $request, MerchantAuth $auth): AdditionalInstallmentQueryResponse
-    {
-        return new AdditionalInstallmentQueryResponse(confirm: false);
-    }
-
-    public function saleQuery(SaleQueryRequest $request, MerchantAuth $auth): SaleQueryResponse
-    {
-        return new SaleQueryResponse(status: SaleQueryResponseStatus::Error, message: 'Bu sanal pos için satış sorgulama işlemi şuan desteklenmiyor');
     }
 
     // --- Private helpers ---

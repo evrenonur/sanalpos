@@ -271,7 +271,7 @@ HTML;
         $cardNumber = preg_replace('/\D/', '', $cardNumber);
 
         if (empty($cardNumber)) {
-            return 'MasterCard';
+            return 'Unknown';
         }
 
         $firstDigit = $cardNumber[0] ?? '';
@@ -301,6 +301,6 @@ HTML;
             return 'Troy';
         }
 
-        return 'MasterCard';
+        return 'Unknown';
     }
 }

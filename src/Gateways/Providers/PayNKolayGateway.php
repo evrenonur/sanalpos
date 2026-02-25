@@ -2,35 +2,26 @@
 
 namespace EvrenOnur\SanalPos\Gateways\Providers;
 
-use EvrenOnur\SanalPos\Contracts\VirtualPOSServiceInterface;
 use EvrenOnur\SanalPos\DTOs\AllInstallment;
 use EvrenOnur\SanalPos\DTOs\MerchantAuth;
-use EvrenOnur\SanalPos\DTOs\Requests\AdditionalInstallmentQueryRequest;
 use EvrenOnur\SanalPos\DTOs\Requests\AllInstallmentQueryRequest;
-use EvrenOnur\SanalPos\DTOs\Requests\BINInstallmentQueryRequest;
 use EvrenOnur\SanalPos\DTOs\Requests\CancelRequest;
 use EvrenOnur\SanalPos\DTOs\Requests\RefundRequest;
 use EvrenOnur\SanalPos\DTOs\Requests\Sale3DResponse;
-use EvrenOnur\SanalPos\DTOs\Requests\SaleQueryRequest;
 use EvrenOnur\SanalPos\DTOs\Requests\SaleRequest;
-use EvrenOnur\SanalPos\DTOs\Responses\AdditionalInstallmentQueryResponse;
 use EvrenOnur\SanalPos\DTOs\Responses\AllInstallmentQueryResponse;
-use EvrenOnur\SanalPos\DTOs\Responses\BINInstallmentQueryResponse;
 use EvrenOnur\SanalPos\DTOs\Responses\CancelResponse;
 use EvrenOnur\SanalPos\DTOs\Responses\RefundResponse;
-use EvrenOnur\SanalPos\DTOs\Responses\SaleQueryResponse;
 use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
 use EvrenOnur\SanalPos\Enums\CreditCardProgram;
 use EvrenOnur\SanalPos\Enums\Currency;
 use EvrenOnur\SanalPos\Enums\ResponseStatus;
-use EvrenOnur\SanalPos\Enums\SaleQueryResponseStatus;
 use EvrenOnur\SanalPos\Enums\SaleResponseStatus;
-use EvrenOnur\SanalPos\Support\MakesHttpRequests;
+use EvrenOnur\SanalPos\Gateways\AbstractGateway;
 use EvrenOnur\SanalPos\Support\StringHelper;
 
-class PayNKolayGateway implements VirtualPOSServiceInterface
+class PayNKolayGateway extends AbstractGateway
 {
-    use MakesHttpRequests;
 
     private string $urlTest = 'https://paynkolaytest.nkolayislem.com.tr';
 
@@ -246,11 +237,6 @@ class PayNKolayGateway implements VirtualPOSServiceInterface
         return $response;
     }
 
-    public function binInstallmentQuery(BINInstallmentQueryRequest $request, MerchantAuth $auth): BINInstallmentQueryResponse
-    {
-        return new BINInstallmentQueryResponse(confirm: false);
-    }
-
     public function allInstallmentQuery(AllInstallmentQueryRequest $request, MerchantAuth $auth): AllInstallmentQueryResponse
     {
         $response = new AllInstallmentQueryResponse(confirm: false);
@@ -292,16 +278,6 @@ class PayNKolayGateway implements VirtualPOSServiceInterface
         }
 
         return $response;
-    }
-
-    public function additionalInstallmentQuery(AdditionalInstallmentQueryRequest $request, MerchantAuth $auth): AdditionalInstallmentQueryResponse
-    {
-        return new AdditionalInstallmentQueryResponse(confirm: false);
-    }
-
-    public function saleQuery(SaleQueryRequest $request, MerchantAuth $auth): SaleQueryResponse
-    {
-        return new SaleQueryResponse(status: SaleQueryResponseStatus::Error, message: 'Bu sanal pos için satış sorgulama işlemi şuan desteklenmiyor');
     }
 
     // --- Private helpers ---

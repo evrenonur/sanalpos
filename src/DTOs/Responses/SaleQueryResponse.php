@@ -19,7 +19,7 @@ class SaleQueryResponse
         /** İşlem tarihi */
         public ?string $transactionDate = null,
         /** İşlem son durumu */
-        public ?SaleQueryTransactionStatus $transactionStatu = null,
+        public ?SaleQueryTransactionStatus $transactionStatus = null,
         /** Karttan çekilen tutar */
         public ?float $amount = null,
         /** Bankanın ham cevabı */
@@ -29,12 +29,12 @@ class SaleQueryResponse
     public function toArray(): array
     {
         return [
-            'statu' => $this->status?->value,
+            'status' => $this->status?->value,
             'message' => $this->message,
             'order_number' => $this->order_number,
             'transaction_id' => $this->transaction_id,
             'transactionDate' => $this->transactionDate,
-            'transactionStatu' => $this->transactionStatu?->value,
+            'transactionStatus' => $this->transactionStatus?->value,
             'amount' => $this->amount,
             'private_response' => $this->private_response,
         ];

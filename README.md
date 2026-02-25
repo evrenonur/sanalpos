@@ -283,14 +283,16 @@ $response = SanalPos::refund($refundRequest, $auth);
 src/
 ├── Contracts/              # VirtualPOSServiceInterface
 ├── Enums/                  # Currency, Country, ResponseStatus, vb.
+├── Exceptions/             # HttpRequestException
 ├── Facades/                # Laravel Facade
 ├── Gateways/
+│   ├── AbstractGateway.php # Tüm gateway'lerin temel sınıfı
 │   ├── Banks/              # Banka gateway'leri
 │   │   └── Nestpay/        # Nestpay altyapılı bankalar
 │   └── Providers/          # Ödeme kuruluşu gateway'leri
 │       ├── CCPayment/      # CCPayment altyapılı kuruluşlar
 │       └── Payten/         # Payten altyapılı kuruluşlar
-├── Support/                # StringHelper, ValidationHelper, XmlHelper
+├── Support/                # StringHelper, ValidationHelper, XmlHelper, MakesHttpRequests
 ├── Infrastructure/
 │   └── Iyzico/             # Iyzico özel altyapı sınıfları
 ├── DTOs/                   # Data Transfer Objects
@@ -300,6 +302,36 @@ src/
 ├── Services/               # BankService
 ├── SanalPosClient.php      # Ana statik istemci
 └── SanalPosServiceProvider.php
+```
+
+## Yapılandırma
+
+Config dosyasında (`config/sanalpos.php`) aşağıdaki ayarlar mevcuttur:
+
+| Ayar | Env Değişkeni | Varsayılan | Açıklama |
+| ---- | ------------- | --------- | -------- |
+| `test_mode` | `SANALPOS_TEST_MODE` | `true` | Tüm işlemleri test ortamına yönlendirir |
+| `timeout` | `SANALPOS_TIMEOUT` | `60` | HTTP istek zaman aşımı (saniye) |
+| `verify_ssl` | `SANALPOS_VERIFY_SSL` | `true` | SSL sertifika doğrulaması (production'da `true` olmalıdır) |
+| `connect_timeout` | `SANALPOS_CONNECT_TIMEOUT` | `10` | HTTP bağlantı kurma zaman aşımı (saniye) |
+
+## Hata Yönetimi
+
+HTTP istekleri sırasında oluşan hatalar `HttpRequestException` olarak fırlatılır:
+
+```php
+use EvrenOnur\SanalPos\Exceptions\HttpRequestException;
+
+try {
+    $response = SanalPosClient::sale($saleRequest, $auth);
+} catch (HttpRequestException $e) {
+    // HTTP bağlantı hatası, timeout vb.
+    echo $e->getMessage();
+    echo $e->url; // Hata oluşan URL
+} catch (\InvalidArgumentException $e) {
+    // Validasyon hatası (eksik/hatalı parametre)
+    echo $e->getMessage();
+}
 ```
 
 ## Test

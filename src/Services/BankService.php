@@ -149,11 +149,20 @@ class BankService
     ];
 
     /**
+     * Cache for allBanks()
+     */
+    private static ?array $cachedBanks = null;
+
+    /**
      * Tüm banka listesi
      */
     public static function allBanks(): array
     {
-        return [
+        if (self::$cachedBanks !== null) {
+            return self::$cachedBanks;
+        }
+
+        self::$cachedBanks = [
             new Bank('0046', 'Akbank', gatewayClass: self::$gatewayMap['0046'] ?? null),
             new Bank('9046', 'Akbank Nestpay', gatewayClass: self::$gatewayMap['9046'] ?? null),
             new Bank('0203', 'Albaraka Türk'),
@@ -203,6 +212,8 @@ class BankService
             new Bank('9998', 'Cardplus', gatewayClass: self::$gatewayMap['9998'] ?? null),
             new Bank('9999', 'Paratika', collective_vpos: true, installment_api: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9999'] ?? null),
         ];
+
+        return self::$cachedBanks;
     }
 
     /**
