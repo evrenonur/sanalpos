@@ -22,7 +22,6 @@ use EvrenOnur\SanalPos\Support\StringHelper;
 
 class PayNKolayGateway extends AbstractGateway
 {
-
     private string $urlTest = 'https://paynkolaytest.nkolayislem.com.tr';
 
     private string $urlLive = 'https://paynkolay.nkolayislem.com.tr';

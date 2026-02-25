@@ -17,7 +17,6 @@ use EvrenOnur\SanalPos\Support\StringHelper;
 
 class VakifbankGateway extends AbstractGateway
 {
-
     private string $urlAPITest = 'https://onlineodemetest.vakifbank.com.tr:4443/VposService/v3/Vposreq.aspx';
 
     private string $urlAPILive = 'https://onlineodeme.vakifbank.com.tr:4443/VposService/v3/Vposreq.aspx';

@@ -12,7 +12,6 @@ use EvrenOnur\SanalPos\Support\StringHelper;
 
 class GarantiBBVAGateway extends AbstractGateway
 {
-
     private string $urlAPITest = 'https://sanalposprovtest.garantibbva.com.tr/VPServlet';
 
     private string $urlAPILive = 'https://sanalposprov.garanti.com.tr/VPServlet';

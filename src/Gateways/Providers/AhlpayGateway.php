@@ -17,7 +17,6 @@ use EvrenOnur\SanalPos\Support\StringHelper;
 
 class AhlpayGateway extends AbstractGateway
 {
-
     private string $urlTest = 'https://testahlsanalpos.ahlpay.com.tr';
 
     private string $urlLive = 'https://ahlsanalpos.ahlpay.com.tr';

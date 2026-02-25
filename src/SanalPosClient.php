@@ -23,7 +23,6 @@ use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
 use EvrenOnur\SanalPos\Services\BankService;
 use EvrenOnur\SanalPos\Support\StringHelper;
 use EvrenOnur\SanalPos\Support\ValidationHelper;
-use InvalidArgumentException;
 
 class SanalPosClient
 {

@@ -17,7 +17,6 @@ use EvrenOnur\SanalPos\Support\StringHelper;
 
 class DenizbankGateway extends AbstractGateway
 {
-
     private string $urlAPITest = 'https://test.inter-vpos.com.tr/mpi/Default.aspx';
 
     private string $urlAPILive = 'https://inter-vpos.com.tr/mpi/Default.aspx';

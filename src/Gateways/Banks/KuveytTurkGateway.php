@@ -12,7 +12,6 @@ use EvrenOnur\SanalPos\Support\StringHelper;
 
 class KuveytTurkGateway extends AbstractGateway
 {
-
     private string $urlNon3DTest = 'https://boatest.kuveytturk.com.tr/boa.virtualpos.services/Home/Non3DPayGate';
 
     private string $urlNon3DLive = 'https://sanalpos.kuveytturk.com.tr/ServiceGateWay/Home/Non3DPayGate';

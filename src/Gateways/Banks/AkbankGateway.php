@@ -17,7 +17,6 @@ use EvrenOnur\SanalPos\Support\StringHelper;
 
 class AkbankGateway extends AbstractGateway
 {
-
     private string $urlAPITest = 'https://apipre.akbank.com/api/v1/payment/virtualpos/transaction/process';
 
     private string $urlAPILive = 'https://api.akbank.com/api/v1/payment/virtualpos/transaction/process';

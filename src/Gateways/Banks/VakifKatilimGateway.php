@@ -12,7 +12,6 @@ use EvrenOnur\SanalPos\Support\StringHelper;
 
 class VakifKatilimGateway extends AbstractGateway
 {
-
     private string $urlNon3DLive = 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/Non3DPayGate';
 
     private string $url3DLive = 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/ThreeDModelPayGate';

@@ -19,7 +19,6 @@ use EvrenOnur\SanalPos\Support\StringHelper;
 
 class MokaGateway extends AbstractGateway
 {
-
     private string $urlTest = 'https://service.refmoka.com';
 
     private string $urlLive = 'https://service.moka.com';

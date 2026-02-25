@@ -17,7 +17,6 @@ use EvrenOnur\SanalPos\Support\StringHelper;
 
 class QNBFinansbankGateway extends AbstractGateway
 {
-
     private string $urlAPITest = 'https://vpostest.qnbfinansbank.com/Gateway/Default.aspx';
 
     private string $urlAPILive = 'https://vpos.qnbfinansbank.com/Gateway/Default.aspx';
