@@ -178,6 +178,7 @@ jobs:
         if: steps.version.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CHANGELOG: ${{ steps.changelog.outputs.changelog }}
         run: |
           NEW_VERSION=${{ steps.version.outputs.new_version }}
           git tag -a $NEW_VERSION -m "Release $NEW_VERSION"
@@ -185,5 +186,5 @@ jobs:
 
           gh release create $NEW_VERSION \
             --title "$NEW_VERSION" \
-            --notes "${{ steps.changelog.outputs.changelog }}" \
+            --notes "$CHANGELOG" \
             --latest
