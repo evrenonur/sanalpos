@@ -1,0 +1,40 @@
+{
+  "git": {
+    "commitMessage": "chore(release): v${version} [skip ci]",
+    "tagName": "v${version}",
+    "tagAnnotation": "Release v${version}",
+    "requireCleanWorkingDir": true,
+    "requireUpstream": true
+  },
+  "github": {
+    "release": true,
+    "releaseName": "v${version}",
+    "autoGenerate": false
+  },
+  "npm": {
+    "publish": false
+  },
+  "plugins": {
+    "@release-it/conventional-changelog": {
+      "preset": {
+        "name": "conventionalcommits",
+        "types": [
+          { "type": "feat", "section": "🚀 Yeni Özellikler" },
+          { "type": "fix", "section": "🐛 Hata Düzeltmeleri" },
+          { "type": "perf", "section": "⚡ Performans İyileştirmeleri" },
+          { "type": "refactor", "section": "♻️ Yeniden Düzenleme" },
+          { "type": "docs", "section": "📝 Dokümantasyon" },
+          { "type": "style", "section": "💄 Kod Stili" },
+          { "type": "test", "section": "🧪 Testler" },
+          { "type": "chore", "section": "🔧 Bakım", "hidden": true },
+          { "type": "ci", "section": "🔧 Bakım", "hidden": true },
+          { "type": "build", "section": "🔧 Bakım", "hidden": true }
+        ]
+      },
+      "infile": "CHANGELOG.md"
+    }
+  },
+  "hooks": {
+    "before:bump": "sed -i 's/\"version\": \".*\"/\"version\": \"${version}\"/' composer.json && git add composer.json"
+  }
+}
