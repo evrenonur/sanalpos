@@ -6,7 +6,7 @@ class ZiraatPayGateway extends AbstractPaytenGateway
 {
     protected function getApiTestUrl(): string
     {
-        return 'https://entegrasyon.ziraatpay.com.tr/ziraatpay/api/v2';
+        return 'https://test.ziraatpay.com.tr/ziraatpay/api/v2';
     }
 
     protected function getApiLiveUrl(): string
@@ -16,7 +16,7 @@ class ZiraatPayGateway extends AbstractPaytenGateway
 
     protected function get3DTestUrl(): string
     {
-        return 'https://entegrasyon.ziraatpay.com.tr/ziraatpay/api/v2/post/sale3d/{0}';
+        return 'https://test.ziraatpay.com.tr/ziraatpay/api/v2/post/sale3d/{0}';
     }
 
     protected function get3DLiveUrl(): string
