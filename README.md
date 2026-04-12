@@ -21,8 +21,8 @@ SanalPos, Türkiye'deki birçok bankanın ve ödeme kuruluşunun sanal POS enteg
 
 ## Gereksinimler
 
-- PHP >= 8.1
-- Laravel 10, 11 veya 12
+- PHP >= 8.3
+- Laravel 10, 11, 12 veya 13
 - ext-simplexml, ext-openssl, ext-json
 
 ## Kurulum
