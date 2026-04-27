@@ -29,4 +29,9 @@ class SipayGateway extends AbstractCCPaymentGateway
     {
         return 'getpos_card_program';
     }
+
+    protected function completePaymentRequiresAppLang(): bool
+    {
+        return true;
+    }
 }

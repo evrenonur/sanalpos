@@ -2,6 +2,8 @@
 
 namespace EvrenOnur\SanalPos\Support;
 
+use EvrenOnur\SanalPos\Enums\Currency;
+
 class StringHelper
 {
     /**
@@ -205,7 +207,7 @@ HTML;
     /**
      * Currency enum'unu ISO 4217 numeric koda çevirir.
      */
-    public static function getCurrencyCode(\EvrenOnur\SanalPos\Enums\Currency $currency): string
+    public static function getCurrencyCode(Currency $currency): string
     {
         return (string) $currency->value;
     }
@@ -213,7 +215,7 @@ HTML;
     /**
      * Currency enum'unun adını döndürür (örn: "TRY", "USD", "EUR").
      */
-    public static function getCurrencyName(\EvrenOnur\SanalPos\Enums\Currency $currency): string
+    public static function getCurrencyName(Currency $currency): string
     {
         return $currency->name;
     }

@@ -10,7 +10,7 @@ it('HttpRequestException url property taşır', function () {
 });
 
 it('HttpRequestException önceki exception\'ı saklar', function () {
-    $prev = new \RuntimeException('Original error');
+    $prev = new RuntimeException('Original error');
     $ex = new HttpRequestException('Wrapped error', '', 0, $prev);
 
     expect($ex->getPrevious())->toBe($prev);

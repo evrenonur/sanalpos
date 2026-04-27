@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.2.0](https://github.com/evrenonur/sanalpos/compare/v1.1.0...v1.2.0) (2026-04-27)
+
+### 🚀 Yeni Özellikler
+
+* Paynet sanal POS entegrasyonu eklendi
+* CCPayment tabanlı ödeme kuruluşları için taksit komisyon politikası desteği eklendi
+* CCPayment 3D ödeme akışı `/payment/complete` tamamlama adımı ile referans implementasyonla hizalandı
+
+### 🐛 Hata Düzeltmeleri
+
+* Iyzico 3D response private response yapısı iki aşamalı detay dönecek şekilde düzeltildi
+* README Paynet ve komisyon politikası desteğini kapsayacak şekilde güncellendi
+
 ## [1.1.0](https://github.com/evrenonur/sanalpos/compare/v1.0.5...v1.1.0) (2026-04-12)
 
 ### 🚀 Yeni Özellikler

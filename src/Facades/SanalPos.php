@@ -2,6 +2,7 @@
 
 namespace EvrenOnur\SanalPos\Facades;
 
+use EvrenOnur\SanalPos\SanalPosClient;
 use Illuminate\Support\Facades\Facade;
 
 /**
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \EvrenOnur\SanalPos\DTOs\Responses\SaleQueryResponse saleQuery(\EvrenOnur\SanalPos\DTOs\Requests\SaleQueryRequest $request, \EvrenOnur\SanalPos\DTOs\MerchantAuth $auth)
  * @method static array allBankList(?callable $filter = null)
  *
- * @see \EvrenOnur\SanalPos\SanalPosClient
+ * @see SanalPosClient
  */
 class SanalPos extends Facade
 {

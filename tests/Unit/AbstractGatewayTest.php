@@ -6,7 +6,10 @@ use EvrenOnur\SanalPos\DTOs\Requests\AllInstallmentQueryRequest;
 use EvrenOnur\SanalPos\DTOs\Requests\BINInstallmentQueryRequest;
 use EvrenOnur\SanalPos\DTOs\Requests\CancelRequest;
 use EvrenOnur\SanalPos\DTOs\Requests\RefundRequest;
+use EvrenOnur\SanalPos\DTOs\Requests\Sale3DResponse;
 use EvrenOnur\SanalPos\DTOs\Requests\SaleQueryRequest;
+use EvrenOnur\SanalPos\DTOs\Requests\SaleRequest;
+use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
 use EvrenOnur\SanalPos\Enums\ResponseStatus;
 use EvrenOnur\SanalPos\Enums\SaleQueryResponseStatus;
 use EvrenOnur\SanalPos\Gateways\AbstractGateway;
@@ -24,14 +27,14 @@ function createTestAuth(): MerchantAuth
 it('binInstallmentQuery stub confirm false döner', function () {
     $gateway = new class extends AbstractGateway
     {
-        public function sale(\EvrenOnur\SanalPos\DTOs\Requests\SaleRequest $request, MerchantAuth $auth): \EvrenOnur\SanalPos\DTOs\Responses\SaleResponse
+        public function sale(SaleRequest $request, MerchantAuth $auth): SaleResponse
         {
-            return new \EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
+            return new SaleResponse;
         }
 
-        public function sale3DResponse(\EvrenOnur\SanalPos\DTOs\Requests\Sale3DResponse $request, MerchantAuth $auth): \EvrenOnur\SanalPos\DTOs\Responses\SaleResponse
+        public function sale3DResponse(Sale3DResponse $request, MerchantAuth $auth): SaleResponse
         {
-            return new \EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
+            return new SaleResponse;
         }
     };
 
@@ -45,14 +48,14 @@ it('binInstallmentQuery stub confirm false döner', function () {
 it('allInstallmentQuery stub confirm false döner', function () {
     $gateway = new class extends AbstractGateway
     {
-        public function sale(\EvrenOnur\SanalPos\DTOs\Requests\SaleRequest $request, MerchantAuth $auth): \EvrenOnur\SanalPos\DTOs\Responses\SaleResponse
+        public function sale(SaleRequest $request, MerchantAuth $auth): SaleResponse
         {
-            return new \EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
+            return new SaleResponse;
         }
 
-        public function sale3DResponse(\EvrenOnur\SanalPos\DTOs\Requests\Sale3DResponse $request, MerchantAuth $auth): \EvrenOnur\SanalPos\DTOs\Responses\SaleResponse
+        public function sale3DResponse(Sale3DResponse $request, MerchantAuth $auth): SaleResponse
         {
-            return new \EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
+            return new SaleResponse;
         }
     };
 
@@ -66,14 +69,14 @@ it('allInstallmentQuery stub confirm false döner', function () {
 it('additionalInstallmentQuery stub confirm false döner', function () {
     $gateway = new class extends AbstractGateway
     {
-        public function sale(\EvrenOnur\SanalPos\DTOs\Requests\SaleRequest $request, MerchantAuth $auth): \EvrenOnur\SanalPos\DTOs\Responses\SaleResponse
+        public function sale(SaleRequest $request, MerchantAuth $auth): SaleResponse
         {
-            return new \EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
+            return new SaleResponse;
         }
 
-        public function sale3DResponse(\EvrenOnur\SanalPos\DTOs\Requests\Sale3DResponse $request, MerchantAuth $auth): \EvrenOnur\SanalPos\DTOs\Responses\SaleResponse
+        public function sale3DResponse(Sale3DResponse $request, MerchantAuth $auth): SaleResponse
         {
-            return new \EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
+            return new SaleResponse;
         }
     };
 
@@ -87,14 +90,14 @@ it('additionalInstallmentQuery stub confirm false döner', function () {
 it('cancel stub error status döner', function () {
     $gateway = new class extends AbstractGateway
     {
-        public function sale(\EvrenOnur\SanalPos\DTOs\Requests\SaleRequest $request, MerchantAuth $auth): \EvrenOnur\SanalPos\DTOs\Responses\SaleResponse
+        public function sale(SaleRequest $request, MerchantAuth $auth): SaleResponse
         {
-            return new \EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
+            return new SaleResponse;
         }
 
-        public function sale3DResponse(\EvrenOnur\SanalPos\DTOs\Requests\Sale3DResponse $request, MerchantAuth $auth): \EvrenOnur\SanalPos\DTOs\Responses\SaleResponse
+        public function sale3DResponse(Sale3DResponse $request, MerchantAuth $auth): SaleResponse
         {
-            return new \EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
+            return new SaleResponse;
         }
     };
 
@@ -109,14 +112,14 @@ it('cancel stub error status döner', function () {
 it('refund stub error status döner', function () {
     $gateway = new class extends AbstractGateway
     {
-        public function sale(\EvrenOnur\SanalPos\DTOs\Requests\SaleRequest $request, MerchantAuth $auth): \EvrenOnur\SanalPos\DTOs\Responses\SaleResponse
+        public function sale(SaleRequest $request, MerchantAuth $auth): SaleResponse
         {
-            return new \EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
+            return new SaleResponse;
         }
 
-        public function sale3DResponse(\EvrenOnur\SanalPos\DTOs\Requests\Sale3DResponse $request, MerchantAuth $auth): \EvrenOnur\SanalPos\DTOs\Responses\SaleResponse
+        public function sale3DResponse(Sale3DResponse $request, MerchantAuth $auth): SaleResponse
         {
-            return new \EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
+            return new SaleResponse;
         }
     };
 
@@ -131,14 +134,14 @@ it('refund stub error status döner', function () {
 it('saleQuery stub error status döner', function () {
     $gateway = new class extends AbstractGateway
     {
-        public function sale(\EvrenOnur\SanalPos\DTOs\Requests\SaleRequest $request, MerchantAuth $auth): \EvrenOnur\SanalPos\DTOs\Responses\SaleResponse
+        public function sale(SaleRequest $request, MerchantAuth $auth): SaleResponse
         {
-            return new \EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
+            return new SaleResponse;
         }
 
-        public function sale3DResponse(\EvrenOnur\SanalPos\DTOs\Requests\Sale3DResponse $request, MerchantAuth $auth): \EvrenOnur\SanalPos\DTOs\Responses\SaleResponse
+        public function sale3DResponse(Sale3DResponse $request, MerchantAuth $auth): SaleResponse
         {
-            return new \EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
+            return new SaleResponse;
         }
     };
 

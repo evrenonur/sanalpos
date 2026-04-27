@@ -1,13 +1,14 @@
 <?php
 
 use EvrenOnur\SanalPos\Support\MakesHttpRequests;
+use GuzzleHttp\Client;
 
 // MakesHttpRequests trait testi için basit bir test sınıfı
 class TestHttpClient
 {
     use MakesHttpRequests;
 
-    public function getClient(): \GuzzleHttp\Client
+    public function getClient(): Client
     {
         return $this->getHttpClient();
     }
@@ -34,7 +35,7 @@ it('MakesHttpRequests trait Guzzle Client oluşturur', function () {
     $client = new TestHttpClient;
     $guzzle = $client->getClient();
 
-    expect($guzzle)->toBeInstanceOf(\GuzzleHttp\Client::class);
+    expect($guzzle)->toBeInstanceOf(Client::class);
 });
 
 it('MakesHttpRequests trait aynı Client nesnesini tekrar kullanır', function () {

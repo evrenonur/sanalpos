@@ -2,6 +2,13 @@
 
 namespace EvrenOnur\SanalPos\Support;
 
+use EvrenOnur\SanalPos\DTOs\CustomerInfo;
+use EvrenOnur\SanalPos\DTOs\MerchantAuth;
+use EvrenOnur\SanalPos\DTOs\Requests\BINInstallmentQueryRequest;
+use EvrenOnur\SanalPos\DTOs\Requests\CancelRequest;
+use EvrenOnur\SanalPos\DTOs\Requests\RefundRequest;
+use EvrenOnur\SanalPos\DTOs\Requests\SaleRequest;
+use EvrenOnur\SanalPos\DTOs\SaleInfo;
 use InvalidArgumentException;
 
 class ValidationHelper
@@ -9,7 +16,7 @@ class ValidationHelper
     /**
      * SaleRequest validasyonu
      */
-    public static function validateSaleRequest(\EvrenOnur\SanalPos\DTOs\Requests\SaleRequest $request): void
+    public static function validateSaleRequest(SaleRequest $request): void
     {
         if (empty($request->order_number)) {
             throw new InvalidArgumentException('order_number alanı zorunludur');
@@ -37,7 +44,7 @@ class ValidationHelper
     /**
      * SaleInfo validasyonu
      */
-    public static function validateSaleInfo(\EvrenOnur\SanalPos\DTOs\SaleInfo $info): void
+    public static function validateSaleInfo(SaleInfo $info): void
     {
         if (empty($info->card_name_surname)) {
             throw new InvalidArgumentException('card_name_surname alanı zorunludur');
@@ -78,7 +85,7 @@ class ValidationHelper
     /**
      * MerchantAuth validasyonu
      */
-    public static function validateAuth(\EvrenOnur\SanalPos\DTOs\MerchantAuth $auth): void
+    public static function validateAuth(MerchantAuth $auth): void
     {
         if (empty($auth->bank_code)) {
             throw new InvalidArgumentException('bank_code alanı zorunludur');
@@ -88,7 +95,7 @@ class ValidationHelper
     /**
      * CancelRequest validasyonu
      */
-    public static function validateCancelRequest(\EvrenOnur\SanalPos\DTOs\Requests\CancelRequest $request): void
+    public static function validateCancelRequest(CancelRequest $request): void
     {
         if (empty($request->order_number) && empty($request->transaction_id)) {
             throw new InvalidArgumentException('order_number veya transaction_id alanlarından en az biri zorunludur');
@@ -98,7 +105,7 @@ class ValidationHelper
     /**
      * RefundRequest validasyonu
      */
-    public static function validateRefundRequest(\EvrenOnur\SanalPos\DTOs\Requests\RefundRequest $request): void
+    public static function validateRefundRequest(RefundRequest $request): void
     {
         if (empty($request->order_number) && empty($request->transaction_id)) {
             throw new InvalidArgumentException('order_number veya transaction_id alanlarından en az biri zorunludur');
@@ -112,7 +119,7 @@ class ValidationHelper
     /**
      * BINInstallmentQueryRequest validasyonu
      */
-    public static function validateBINInstallmentQuery(\EvrenOnur\SanalPos\DTOs\Requests\BINInstallmentQueryRequest $request): void
+    public static function validateBINInstallmentQuery(BINInstallmentQueryRequest $request): void
     {
         $binLen = strlen($request->BIN);
         if ($binLen < 6 || $binLen > 8) {
@@ -123,9 +130,9 @@ class ValidationHelper
     /**
      * CustomerInfo adres sanitizasyonu
      */
-    public static function sanitizeCustomerInfo(\EvrenOnur\SanalPos\DTOs\CustomerInfo $info): \EvrenOnur\SanalPos\DTOs\CustomerInfo
+    public static function sanitizeCustomerInfo(CustomerInfo $info): CustomerInfo
     {
-        return new \EvrenOnur\SanalPos\DTOs\CustomerInfo(
+        return new CustomerInfo(
             name: StringHelper::maxLength(StringHelper::clearString($info->name), 50),
             surname: StringHelper::maxLength(StringHelper::clearString($info->surname), 50),
             email_address: StringHelper::maxLength(StringHelper::clearString($info->email_address), 100),

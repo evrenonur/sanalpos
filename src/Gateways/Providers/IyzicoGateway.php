@@ -170,9 +170,15 @@ class IyzicoGateway extends AbstractGateway
     {
         $response = new SaleResponse;
         $response->status = SaleResponseStatus::Error;
-        $response->private_response = $request->responseArray;
-
         $responseArray = $request->responseArray ?? [];
+
+        if ($request->responseArray === null) {
+            $response->message = 'responseArray boş olamaz';
+
+            return $response;
+        }
+
+        $response->private_response = ['response_1' => $request->responseArray];
 
         $response->order_number = (string) ($responseArray['conversationId'] ?? '');
         $response->transaction_id = (string) ($responseArray['paymentId'] ?? '');
@@ -196,7 +202,7 @@ class IyzicoGateway extends AbstractGateway
                 $paymentRequest->toArray()
             );
 
-            $response->private_response = array_merge($response->private_response, ['threedsPayment' => $result]);
+            $response->private_response['response_2'] = $result;
 
             if (strtolower($result['status'] ?? '') === 'success') {
                 $response->status = SaleResponseStatus::Success;

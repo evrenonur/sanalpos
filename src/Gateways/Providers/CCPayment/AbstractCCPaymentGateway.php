@@ -22,6 +22,7 @@ use EvrenOnur\SanalPos\DTOs\Responses\SaleQueryResponse;
 use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
 use EvrenOnur\SanalPos\Enums\CreditCardProgram;
 use EvrenOnur\SanalPos\Enums\Currency;
+use EvrenOnur\SanalPos\Enums\InstallmentCommissionPolicy;
 use EvrenOnur\SanalPos\Enums\ResponseStatus;
 use EvrenOnur\SanalPos\Enums\SaleQueryResponseStatus;
 use EvrenOnur\SanalPos\Enums\SaleResponseStatus;
@@ -78,6 +79,8 @@ abstract class AbstractCCPaymentGateway implements VirtualPOSServiceInterface
             'transaction_type' => 'Auth',
         ];
 
+        $this->appendInstallmentCommissionPolicy($body, $request->sale_info->installment, $auth);
+
         $resp = $this->jsonRequest($baseUrl . '/api/paySmart2D', $body, $token);
         $respDic = json_decode($resp, true) ?? [];
 
@@ -116,6 +119,11 @@ abstract class AbstractCCPaymentGateway implements VirtualPOSServiceInterface
         return 'card_program';
     }
 
+    protected function completePaymentRequiresAppLang(): bool
+    {
+        return false;
+    }
+
     private function sale3D(SaleRequest $request, MerchantAuth $auth): SaleResponse
     {
         $response = new SaleResponse(order_number: $request->order_number);
@@ -150,11 +158,13 @@ abstract class AbstractCCPaymentGateway implements VirtualPOSServiceInterface
             'hash_key' => $hashKey,
             'transaction_type' => 'Auth',
             'response_method' => 'POST',
-            'payment_completed_by' => 'app',
+            'payment_completed_by' => 'merchant',
             'ip' => $request->customer_ip_address,
             'cancel_url' => $request->payment_3d->return_url,
             'return_url' => $request->payment_3d->return_url,
         ];
+
+        $this->appendInstallmentCommissionPolicy($body, $request->sale_info->installment, $auth);
 
         $resp = $this->jsonRequest($baseUrl . '/api/paySmart3D', $body, $token);
 
@@ -168,33 +178,70 @@ abstract class AbstractCCPaymentGateway implements VirtualPOSServiceInterface
     public function sale3DResponse(Sale3DResponse $request, MerchantAuth $auth): SaleResponse
     {
         $response = new SaleResponse;
-        $response->private_response = $request->responseArray;
+        $response->private_response = ['response_1' => $request->responseArray];
 
-        $response->transaction_id = (string) ($request->responseArray['auth_code'] ?? '');
-        $response->order_number = (string) ($request->responseArray['invoice_id'] ?? '');
+        $responseArray = $request->responseArray ?? [];
+        $response->order_number = (string) ($responseArray['invoice_id'] ?? '');
 
-        // Hash doğrulaması
-        $hashKey = $request->responseArray['hash_key'] ?? '';
-        if (! empty($hashKey)) {
-            $validated = $this->validateHashKey($hashKey, $auth->merchant_password);
-            if ($validated === false || (is_array($validated) && ! in_array($response->order_number, $validated))) {
+        $hashKey = (string) ($responseArray['hash_key'] ?? '');
+        $validated = ! empty($hashKey) ? $this->validateHashKey($hashKey, $auth->merchant_password) : false;
+        if ($validated === false || ! in_array($response->order_number, $validated, true)) {
+            $response->status = SaleResponseStatus::Error;
+            $response->message = 'Hash doğrulanamadı, ödeme onaylanmadı.';
+
+            return $response;
+        }
+
+        if ((string) ($responseArray['md_status'] ?? '') === '1') {
+            $baseUrl = $this->getBaseUrl($auth);
+            $token = $this->getToken($baseUrl, $auth);
+
+            if (empty($token)) {
                 $response->status = SaleResponseStatus::Error;
-                $response->message = 'Hash doğrulanamadı, ödeme onaylanmadı.';
+                $response->message = 'Token alınamadı';
 
                 return $response;
             }
+
+            $completeRequest = [
+                'merchant_key' => $auth->merchant_storekey,
+                'invoice_id' => $response->order_number,
+                'order_id' => (string) ($responseArray['order_id'] ?? ''),
+                'status' => 'complete',
+                'hash_key' => '',
+            ];
+
+            if ($this->completePaymentRequiresAppLang()) {
+                $completeRequest['app_lang'] = 'tr';
+            }
+
+            $completeRequest['hash_key'] = $this->generateHashKeyCompletePayment(
+                $completeRequest['merchant_key'],
+                $completeRequest['invoice_id'],
+                $completeRequest['order_id'],
+                $completeRequest['status'],
+                $auth->merchant_password,
+            );
+
+            $resp = $this->jsonRequest($baseUrl . '/payment/complete', $completeRequest, $token);
+            $respDic = json_decode($resp, true) ?? [];
+            $response->private_response['response_2'] = $respDic;
+
+            if ((string) ($respDic['status_code'] ?? '') === '100') {
+                $data = is_array($respDic['data'] ?? null) ? $respDic['data'] : [];
+                $response->transaction_id = (string) ($data['auth_code'] ?? '');
+                $response->status = SaleResponseStatus::Success;
+                $response->message = 'İşlem başarılı';
+            } else {
+                $response->status = SaleResponseStatus::Error;
+                $response->message = $respDic['status_description'] ?? 'İşlem sırasında bir hata oluştu';
+            }
+
+            return $response;
         }
 
-        $paymentStatus = (string) ($request->responseArray['payment_status'] ?? '');
-        $statusCode = (string) ($request->responseArray['status_code'] ?? '');
-
-        if ($paymentStatus === '1' || ($this->skipPaymentStatusCheck() && $statusCode === '100')) {
-            $response->status = SaleResponseStatus::Success;
-            $response->message = 'İşlem başarılı';
-        } else {
-            $response->status = SaleResponseStatus::Error;
-            $response->message = $request->responseArray['error'] ?? ($request->responseArray['status_description'] ?? 'İşlem sırasında bir hata oluştu');
-        }
+        $response->status = SaleResponseStatus::Error;
+        $response->message = $responseArray['error'] ?? ($responseArray['status_description'] ?? 'İşlem sırasında bir hata oluştu');
 
         return $response;
     }
@@ -273,6 +320,10 @@ abstract class AbstractCCPaymentGateway implements VirtualPOSServiceInterface
             'merchant_key' => $auth->merchant_storekey,
         ];
 
+        if ($auth->installment_commission_policy !== InstallmentCommissionPolicy::Default) {
+            $body['is_comission_from_user'] = $this->getInstallmentCommissionPolicyValue($auth);
+        }
+
         $resp = $this->jsonRequest($baseUrl . '/api/getpos', $body, $token);
         $respDic = json_decode($resp, true) ?? [];
 
@@ -311,6 +362,10 @@ abstract class AbstractCCPaymentGateway implements VirtualPOSServiceInterface
             'currency_code' => (string) ($request->currency?->value ?? 949),
         ];
 
+        if ($auth->installment_commission_policy !== InstallmentCommissionPolicy::Default) {
+            $body['is_comission_from_user'] = $this->getInstallmentCommissionPolicyValue($auth);
+        }
+
         $resp = $this->jsonRequest($baseUrl . '/api/commissions', $body, $token);
         $respDic = json_decode($resp, true) ?? [];
 
@@ -329,9 +384,13 @@ abstract class AbstractCCPaymentGateway implements VirtualPOSServiceInterface
                         installment_list: [],
                     );
                 }
+                $rate = (float) ($item['user_commission_percentage'] ?? $item['merchant_commission_rate'] ?? 0);
+                if ($auth->installment_commission_policy === InstallmentCommissionPolicy::AbsorbByMerchant) {
+                    $rate = 0.0;
+                }
                 $installment_list[$programName]->installment_list[] = [
                     'installment' => (int) ($item['installments_number'] ?? 0),
-                    'rate' => (float) ($item['merchant_commission_rate'] ?? 0),
+                    'rate' => $rate,
                 ];
             }
             $response->installment_list = array_values($installment_list);
@@ -413,6 +472,31 @@ abstract class AbstractCCPaymentGateway implements VirtualPOSServiceInterface
         } catch (\Throwable $e) {
             return false;
         }
+    }
+
+    protected function generateHashKeyCompletePayment(string $merchantKey, string $invoiceId, string $orderId, string $status, string $appSecret): string
+    {
+        $data = implode('|', [$merchantKey, $invoiceId, $orderId, $status]);
+        $iv = substr(sha1((string) random_int(100000, 999999)), 0, 16);
+        $password = sha1($appSecret);
+        $salt = substr(sha1((string) random_int(100000, 999999)), 0, 4);
+        $saltWithPassword = substr(hash('sha256', $password . $salt), 0, 32);
+
+        $encrypted = openssl_encrypt($data, 'aes-256-cbc', $saltWithPassword, 0, $iv);
+
+        return str_replace('/', '__', $iv . ':' . $salt . ':' . $encrypted);
+    }
+
+    protected function appendInstallmentCommissionPolicy(array &$body, int $installment, MerchantAuth $auth): void
+    {
+        if ($installment > 1 && $auth->installment_commission_policy !== InstallmentCommissionPolicy::Default) {
+            $body['is_comission_from_user'] = $this->getInstallmentCommissionPolicyValue($auth);
+        }
+    }
+
+    protected function getInstallmentCommissionPolicyValue(MerchantAuth $auth): string
+    {
+        return $auth->installment_commission_policy === InstallmentCommissionPolicy::ChargeToCustomer ? '1' : '2';
     }
 
     protected function jsonRequest(string $url, array $body, ?string $token = null): string

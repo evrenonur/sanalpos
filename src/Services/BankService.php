@@ -4,6 +4,44 @@ namespace EvrenOnur\SanalPos\Services;
 
 use EvrenOnur\SanalPos\Contracts\VirtualPOSServiceInterface;
 use EvrenOnur\SanalPos\DTOs\Bank;
+use EvrenOnur\SanalPos\Gateways\Banks\AkbankGateway;
+use EvrenOnur\SanalPos\Gateways\Banks\DenizbankGateway;
+use EvrenOnur\SanalPos\Gateways\Banks\GarantiBBVAGateway;
+use EvrenOnur\SanalPos\Gateways\Banks\KuveytTurkGateway;
+use EvrenOnur\SanalPos\Gateways\Banks\Nestpay\AkbankNestpayGateway;
+use EvrenOnur\SanalPos\Gateways\Banks\Nestpay\AlternatifBankGateway;
+use EvrenOnur\SanalPos\Gateways\Banks\Nestpay\AnadolubankGateway;
+use EvrenOnur\SanalPos\Gateways\Banks\Nestpay\CardplusGateway;
+use EvrenOnur\SanalPos\Gateways\Banks\Nestpay\FinansbankNestpayGateway;
+use EvrenOnur\SanalPos\Gateways\Banks\Nestpay\HalkbankGateway;
+use EvrenOnur\SanalPos\Gateways\Banks\Nestpay\INGBankGateway;
+use EvrenOnur\SanalPos\Gateways\Banks\Nestpay\IsBankasiGateway;
+use EvrenOnur\SanalPos\Gateways\Banks\Nestpay\SekerbankGateway;
+use EvrenOnur\SanalPos\Gateways\Banks\Nestpay\TurkEkonomiBankasiGateway;
+use EvrenOnur\SanalPos\Gateways\Banks\Nestpay\TurkiyeFinansGateway;
+use EvrenOnur\SanalPos\Gateways\Banks\Nestpay\ZiraatBankasiGateway;
+use EvrenOnur\SanalPos\Gateways\Banks\QNBFinansbankGateway;
+use EvrenOnur\SanalPos\Gateways\Banks\VakifbankGateway;
+use EvrenOnur\SanalPos\Gateways\Banks\VakifKatilimGateway;
+use EvrenOnur\SanalPos\Gateways\Banks\YapiKrediBankasiGateway;
+use EvrenOnur\SanalPos\Gateways\Providers\AhlpayGateway;
+use EvrenOnur\SanalPos\Gateways\Providers\CCPayment\HalkOdeGateway;
+use EvrenOnur\SanalPos\Gateways\Providers\CCPayment\IQmoneyGateway;
+use EvrenOnur\SanalPos\Gateways\Providers\CCPayment\ParolaparaGateway;
+use EvrenOnur\SanalPos\Gateways\Providers\CCPayment\PayBullGateway;
+use EvrenOnur\SanalPos\Gateways\Providers\CCPayment\QNBPayGateway;
+use EvrenOnur\SanalPos\Gateways\Providers\CCPayment\SipayGateway;
+use EvrenOnur\SanalPos\Gateways\Providers\CCPayment\VeparaGateway;
+use EvrenOnur\SanalPos\Gateways\Providers\IyzicoGateway;
+use EvrenOnur\SanalPos\Gateways\Providers\MokaGateway;
+use EvrenOnur\SanalPos\Gateways\Providers\ParamPosGateway;
+use EvrenOnur\SanalPos\Gateways\Providers\PaynetGateway;
+use EvrenOnur\SanalPos\Gateways\Providers\PayNKolayGateway;
+use EvrenOnur\SanalPos\Gateways\Providers\Payten\ParatikaGateway;
+use EvrenOnur\SanalPos\Gateways\Providers\Payten\PaytenGateway;
+use EvrenOnur\SanalPos\Gateways\Providers\Payten\VakifPaySGateway;
+use EvrenOnur\SanalPos\Gateways\Providers\Payten\ZiraatPayGateway;
+use EvrenOnur\SanalPos\Gateways\Providers\TamiGateway;
 use InvalidArgumentException;
 
 class BankService
@@ -62,6 +100,8 @@ class BankService
     // Ödeme kuruluşu kodları
     public const PAYNKOLAY = '9978';
 
+    public const PAYNET = '9977';
+
     public const HALKODE = '9979';
 
     public const TAMI = '9980';
@@ -108,44 +148,45 @@ class BankService
      * Banka kodu → Gateway sınıfı eşlemesi
      */
     private static array $gatewayMap = [
-        '0046' => \EvrenOnur\SanalPos\Gateways\Banks\AkbankGateway::class,
-        '9046' => \EvrenOnur\SanalPos\Gateways\Banks\Nestpay\AkbankNestpayGateway::class,
-        '0124' => \EvrenOnur\SanalPos\Gateways\Banks\Nestpay\AlternatifBankGateway::class,
-        '0135' => \EvrenOnur\SanalPos\Gateways\Banks\Nestpay\AnadolubankGateway::class,
-        '0134' => \EvrenOnur\SanalPos\Gateways\Banks\DenizbankGateway::class,
-        '0111' => \EvrenOnur\SanalPos\Gateways\Banks\QNBFinansbankGateway::class,
-        '9111' => \EvrenOnur\SanalPos\Gateways\Banks\Nestpay\FinansbankNestpayGateway::class,
-        '0062' => \EvrenOnur\SanalPos\Gateways\Banks\GarantiBBVAGateway::class,
-        '0012' => \EvrenOnur\SanalPos\Gateways\Banks\Nestpay\HalkbankGateway::class,
-        '0099' => \EvrenOnur\SanalPos\Gateways\Banks\Nestpay\INGBankGateway::class,
-        '0064' => \EvrenOnur\SanalPos\Gateways\Banks\Nestpay\IsBankasiGateway::class,
-        '0205' => \EvrenOnur\SanalPos\Gateways\Banks\KuveytTurkGateway::class,
-        '0032' => \EvrenOnur\SanalPos\Gateways\Banks\Nestpay\TurkEkonomiBankasiGateway::class,
-        '0206' => \EvrenOnur\SanalPos\Gateways\Banks\Nestpay\TurkiyeFinansGateway::class,
-        '0015' => \EvrenOnur\SanalPos\Gateways\Banks\VakifbankGateway::class,
-        '0067' => \EvrenOnur\SanalPos\Gateways\Banks\YapiKrediBankasiGateway::class,
-        '0059' => \EvrenOnur\SanalPos\Gateways\Banks\Nestpay\SekerbankGateway::class,
-        '0010' => \EvrenOnur\SanalPos\Gateways\Banks\Nestpay\ZiraatBankasiGateway::class,
-        '0210' => \EvrenOnur\SanalPos\Gateways\Banks\VakifKatilimGateway::class,
+        '0046' => AkbankGateway::class,
+        '9046' => AkbankNestpayGateway::class,
+        '0124' => AlternatifBankGateway::class,
+        '0135' => AnadolubankGateway::class,
+        '0134' => DenizbankGateway::class,
+        '0111' => QNBFinansbankGateway::class,
+        '9111' => FinansbankNestpayGateway::class,
+        '0062' => GarantiBBVAGateway::class,
+        '0012' => HalkbankGateway::class,
+        '0099' => INGBankGateway::class,
+        '0064' => IsBankasiGateway::class,
+        '0205' => KuveytTurkGateway::class,
+        '0032' => TurkEkonomiBankasiGateway::class,
+        '0206' => TurkiyeFinansGateway::class,
+        '0015' => VakifbankGateway::class,
+        '0067' => YapiKrediBankasiGateway::class,
+        '0059' => SekerbankGateway::class,
+        '0010' => ZiraatBankasiGateway::class,
+        '0210' => VakifKatilimGateway::class,
 
-        '9978' => \EvrenOnur\SanalPos\Gateways\Providers\PayNKolayGateway::class,
-        '9979' => \EvrenOnur\SanalPos\Gateways\Providers\CCPayment\HalkOdeGateway::class,
-        '9980' => \EvrenOnur\SanalPos\Gateways\Providers\TamiGateway::class,
-        '9981' => \EvrenOnur\SanalPos\Gateways\Providers\Payten\VakifPaySGateway::class,
-        '9982' => \EvrenOnur\SanalPos\Gateways\Providers\Payten\ZiraatPayGateway::class,
-        '9983' => \EvrenOnur\SanalPos\Gateways\Providers\CCPayment\VeparaGateway::class,
-        '9984' => \EvrenOnur\SanalPos\Gateways\Providers\MokaGateway::class,
-        '9985' => \EvrenOnur\SanalPos\Gateways\Providers\AhlpayGateway::class,
-        '9986' => \EvrenOnur\SanalPos\Gateways\Providers\CCPayment\IQmoneyGateway::class,
-        '9987' => \EvrenOnur\SanalPos\Gateways\Providers\CCPayment\ParolaparaGateway::class,
-        '9988' => \EvrenOnur\SanalPos\Gateways\Providers\CCPayment\PayBullGateway::class,
-        '9989' => \EvrenOnur\SanalPos\Gateways\Providers\ParamPosGateway::class,
-        '9990' => \EvrenOnur\SanalPos\Gateways\Providers\CCPayment\QNBPayGateway::class,
-        '9991' => \EvrenOnur\SanalPos\Gateways\Providers\CCPayment\SipayGateway::class,
-        '9993' => \EvrenOnur\SanalPos\Gateways\Providers\Payten\PaytenGateway::class,
-        '9997' => \EvrenOnur\SanalPos\Gateways\Providers\IyzicoGateway::class,
-        '9998' => \EvrenOnur\SanalPos\Gateways\Banks\Nestpay\CardplusGateway::class,
-        '9999' => \EvrenOnur\SanalPos\Gateways\Providers\Payten\ParatikaGateway::class,
+        '9977' => PaynetGateway::class,
+        '9978' => PayNKolayGateway::class,
+        '9979' => HalkOdeGateway::class,
+        '9980' => TamiGateway::class,
+        '9981' => VakifPaySGateway::class,
+        '9982' => ZiraatPayGateway::class,
+        '9983' => VeparaGateway::class,
+        '9984' => MokaGateway::class,
+        '9985' => AhlpayGateway::class,
+        '9986' => IQmoneyGateway::class,
+        '9987' => ParolaparaGateway::class,
+        '9988' => PayBullGateway::class,
+        '9989' => ParamPosGateway::class,
+        '9990' => QNBPayGateway::class,
+        '9991' => SipayGateway::class,
+        '9993' => PaytenGateway::class,
+        '9997' => IyzicoGateway::class,
+        '9998' => CardplusGateway::class,
+        '9999' => ParatikaGateway::class,
     ];
 
     /**
@@ -189,6 +230,7 @@ class BankService
             new Bank('0210', 'Vakıf Katılım', gatewayClass: self::$gatewayMap['0210'] ?? null),
             new Bank('0209', 'Ziraat Katılım'),
 
+            new Bank('9977', 'Paynet', collective_vpos: true, installment_api: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9977'] ?? null),
             new Bank('9978', 'PayNKolay', collective_vpos: true, installment_api: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9978'] ?? null),
             new Bank('9979', 'HalkÖde', collective_vpos: true, installment_api: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9979'] ?? null),
             new Bank('9980', 'Tami', collective_vpos: true, installment_api: true, commissionAutoAdd: true, gatewayClass: self::$gatewayMap['9980'] ?? null),

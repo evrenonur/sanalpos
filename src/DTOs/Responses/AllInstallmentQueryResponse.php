@@ -10,5 +10,6 @@ class AllInstallmentQueryResponse
         public bool $confirm = false,
         /** @var AllInstallment[]|null */
         public ?array $installment_list = null,
+        public ?array $private_response = null,
     ) {}
 }

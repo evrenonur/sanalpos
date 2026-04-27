@@ -2,6 +2,8 @@
 
 namespace EvrenOnur\SanalPos\DTOs;
 
+use EvrenOnur\SanalPos\Enums\InstallmentCommissionPolicy;
+
 class MerchantAuth
 {
     public function __construct(
@@ -11,6 +13,7 @@ class MerchantAuth
         public string $merchant_password = '',
         public string $merchant_storekey = '',
         public bool $test_platform = true,
+        public InstallmentCommissionPolicy $installment_commission_policy = InstallmentCommissionPolicy::Default,
     ) {}
 
     /**
@@ -25,6 +28,11 @@ class MerchantAuth
             merchant_password: $data['merchant_password'] ?? '',
             merchant_storekey: $data['merchant_storekey'] ?? '',
             test_platform: $data['test_platform'] ?? true,
+            installment_commission_policy: isset($data['installment_commission_policy'])
+                ? (is_int($data['installment_commission_policy'])
+                    ? InstallmentCommissionPolicy::from($data['installment_commission_policy'])
+                    : $data['installment_commission_policy'])
+                : InstallmentCommissionPolicy::Default,
         );
     }
 

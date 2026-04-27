@@ -1,6 +1,6 @@
 {
   "name": "evrenonur/sanalpos",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Türkiye'deki banka ve ödeme kuruluşlarının sanal POS entegrasyonlarını tek bir Laravel paketi altında birleştiren kütüphane",
   "keywords": [
     "laravel",

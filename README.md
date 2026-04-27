@@ -16,6 +16,7 @@ SanalPos, Türkiye'deki birçok bankanın ve ödeme kuruluşunun sanal POS enteg
 + **Basitleştirilmiş İşlem Akışı:** Sanal pos işlemleri için gerekli tüm adımlar kütüphane tarafından otomatik olarak halledilir.
 + **3D Güvenli Ödeme Desteği:** 3D Güvenli Ödeme işlemleri için gerekli tüm adımlar desteklenir.
 + **Geniş Banka Kapsamı:** 35+ banka ve ödeme kuruluşu desteği.
++ **Ödeme Kuruluşu Komisyon Politikası:** CCPayment tabanlı kuruluşlarda taksit komisyonunu müşteriye veya satıcıya yansıtma seçeneği desteklenir.
 + **Laravel Entegrasyonu:** ServiceProvider, Facade ve config dosyası ile tam Laravel uyumluluğu.
 + **Bağımsız Kullanım:** Laravel olmadan da `SanalPosClient` statik sınıfı ile kullanılabilir.
 
@@ -43,6 +44,7 @@ php artisan vendor:publish --provider="EvrenOnur\SanalPos\SanalPosServiceProvide
 
 | Sanal POS | Satış | Satış 3D | İptal | İade |
 | --------- | :---: | :------: | :---: | :---: |
+| Paynet | ✔️ | ✔️ | ✔️ | ✔️ |
 | Akbank | ✔️ | ✔️ | ✔️ | ✔️ |
 | Akbank Nestpay | ✔️ | ✔️ | ✔️ | ✔️ |
 | Alternatif Bank | ✔️ | ✔️ | ✔️ | ✔️ |
@@ -91,6 +93,29 @@ php artisan vendor:publish --provider="EvrenOnur\SanalPos\SanalPosServiceProvide
 | `merchant_password` | `string` | API kullanıcı şifresi |
 | `merchant_storekey` | `string` | 3D store key / güvenlik anahtarı |
 | `test_platform` | `bool` | `true` → test ortamı, `false` → canlı ortam |
+| `installment_commission_policy` | `InstallmentCommissionPolicy` | CCPayment tabanlı kuruluşlarda taksit komisyonunun nasıl yansıtılacağını belirler. Varsayılan: `Default` |
+
+### Taksit Komisyon Politikası
+
+CCPayment altyapısını kullanan ödeme kuruluşlarında taksitli işlemlerde oluşan komisyon için aşağıdaki seçenekler kullanılabilir:
+
+- `InstallmentCommissionPolicy::Default`: Gateway varsayılan davranışı kullanılır
+- `InstallmentCommissionPolicy::ChargeToCustomer`: Komisyon müşteriye yansıtılır
+- `InstallmentCommissionPolicy::AbsorbByMerchant`: Komisyon satıcı üzerinde bırakılır
+
+```php
+use EvrenOnur\SanalPos\Enums\InstallmentCommissionPolicy;
+
+$auth = new MerchantAuth(
+    bank_code: BankService::SIPAY,
+    merchant_id: 'merchant-id',
+    merchant_user: 'merchant-user',
+    merchant_password: 'merchant-password',
+    merchant_storekey: 'merchant-storekey',
+    test_platform: true,
+    installment_commission_policy: InstallmentCommissionPolicy::ChargeToCustomer,
+);
+```
 
 ## Kullanım Örnekleri
 
@@ -203,6 +228,8 @@ public function virtualPOS3DResponse(Request $request)
     // $response->status → SaleResponseStatus::Success veya Error
     // $response->message → Sonuç mesajı
     // $response->transaction_id → İşlem ID
+    // $response->private_response['response_1'] → callback verisi
+    // $response->private_response['response_2'] → gerekiyorsa provider tamamlama yanıtı
 }
 ```
 
@@ -266,6 +293,7 @@ $response = SanalPos::refund($refundRequest, $auth);
 | Vakıfbank | `BankService::VAKIFBANK` | Üye İşyeri No | POS No | Api Şifresi | — |
 | Yapı Kredi | `BankService::YAPI_KREDI` | Firma Kodu | Terminal No | PosNet ID | ENCKEY |
 | Iyzico | `BankService::IYZICO` | Üye İşyeri No | API Anahtarı | Güvenlik Anahtarı | — |
+| Paynet | `BankService::PAYNET` | Paynet Merchant ID | Basic Auth kullanıcısı | Basic Auth şifresi | — |
 | Sipay | `BankService::SIPAY` | Üye İşyeri ID | Uygulama Anahtarı | Uygulama Parolası | Merchant Key |
 | QNBpay | `BankService::QNBPAY` | Üye İşyeri ID | Uygulama Anahtarı | Uygulama Parolası | Merchant Key |
 | ParamPos | `BankService::PARAMPOS` | Client Code | Kullanıcı Adı | Şifre | Guid Anahtar |

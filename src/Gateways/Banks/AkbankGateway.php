@@ -10,6 +10,7 @@ use EvrenOnur\SanalPos\DTOs\Requests\SaleRequest;
 use EvrenOnur\SanalPos\DTOs\Responses\CancelResponse;
 use EvrenOnur\SanalPos\DTOs\Responses\RefundResponse;
 use EvrenOnur\SanalPos\DTOs\Responses\SaleResponse;
+use EvrenOnur\SanalPos\Enums\Currency;
 use EvrenOnur\SanalPos\Enums\ResponseStatus;
 use EvrenOnur\SanalPos\Enums\SaleResponseStatus;
 use EvrenOnur\SanalPos\Gateways\AbstractGateway;
@@ -27,7 +28,7 @@ class AkbankGateway extends AbstractGateway
 
     public function sale(SaleRequest $request, MerchantAuth $auth): SaleResponse
     {
-        $request->sale_info->currency = $request->sale_info->currency ?? \EvrenOnur\SanalPos\Enums\Currency::TRY;
+        $request->sale_info->currency = $request->sale_info->currency ?? Currency::TRY;
         $request->sale_info->installment = $request->sale_info->installment > 1 ? $request->sale_info->installment : 1;
 
         if ($request->payment_3d?->confirm === true) {
