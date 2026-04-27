@@ -4,6 +4,16 @@
 
 ### 🚀 Yeni Özellikler
 
+* port CP.VPOS provider updates for v1.2.0 ([430d0a1](https://github.com/evrenonur/sanalpos/commit/430d0a155d585ed0b5371154f405c0c1588b8cac))
+
+### 💄 Kod Stili
+
+* apply pint formatting and restore composer constraint ([11d52ec](https://github.com/evrenonur/sanalpos/commit/11d52ec73a376110e0569d87029be66d773d83d1))
+
+## [1.2.0](https://github.com/evrenonur/sanalpos/compare/v1.1.0...v1.2.0) (2026-04-27)
+
+### 🚀 Yeni Özellikler
+
 * Paynet sanal POS entegrasyonu eklendi
 * CCPayment tabanlı ödeme kuruluşları için taksit komisyon politikası desteği eklendi
 * CCPayment 3D ödeme akışı `/payment/complete` tamamlama adımı ile referans implementasyonla hizalandı
