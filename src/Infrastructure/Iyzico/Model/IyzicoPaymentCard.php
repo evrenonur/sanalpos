@@ -12,7 +12,7 @@ class IyzicoPaymentCard implements PKISerializable
 {
     public ?string $cardHolderName = null;
 
-    public ?string $card_number = null;
+    public ?string $cardNumber = null;
 
     public ?string $expireYear = null;
 
@@ -32,7 +32,7 @@ class IyzicoPaymentCard implements PKISerializable
     {
         return PKIRequestStringBuilder::create()
             ->append('cardHolderName', $this->cardHolderName)
-            ->append('card_number', $this->card_number)
+            ->append('cardNumber', $this->cardNumber)
             ->append('expireYear', $this->expireYear)
             ->append('expireMonth', $this->expireMonth)
             ->append('cvc', $this->cvc)

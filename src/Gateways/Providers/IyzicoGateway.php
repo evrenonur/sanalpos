@@ -66,7 +66,7 @@ class IyzicoGateway extends AbstractGateway
         // Kart bilgileri
         $paymentCard = new IyzicoPaymentCard;
         $paymentCard->cardHolderName = $request->sale_info->card_name_surname;
-        $paymentCard->card_number = $request->sale_info->card_number;
+        $paymentCard->cardNumber = $request->sale_info->card_number;
         $paymentCard->expireMonth = str_pad($request->sale_info->card_expiry_month, 2, '0', STR_PAD_LEFT);
         $paymentCard->expireYear = (string) $request->sale_info->card_expiry_year;
         $paymentCard->cvc = $request->sale_info->card_cvv;
@@ -82,7 +82,7 @@ class IyzicoGateway extends AbstractGateway
         $buyer->identityNumber = $request->invoice_info?->tax_number ?? '11111111111';
         $buyer->registrationAddress = $request->invoice_info?->address_description ?? '';
         $buyer->ip = $request->customer_ip_address;
-        $buyer->city = $request->invoice_info?->city ?? '';
+        $buyer->city = $request->invoice_info?->city_name ?? '';
         $buyer->country = $request->invoice_info?->country?->name ?? 'Turkey';
         $buyer->zipCode = $request->invoice_info?->post_code ?? '';
         $req->buyer = $buyer;
@@ -90,7 +90,7 @@ class IyzicoGateway extends AbstractGateway
         // Kargo adresi
         $shippingAddress = new IyzicoAddress;
         $shippingAddress->contactName = $request->shipping_info?->name ?? $request->sale_info->card_name_surname;
-        $shippingAddress->city = $request->shipping_info?->city ?? '';
+        $shippingAddress->city = $request->shipping_info?->city_name ?? '';
         $shippingAddress->country = $request->shipping_info?->country?->name ?? 'Turkey';
         $shippingAddress->address = $request->shipping_info?->address_description ?? '';
         $shippingAddress->zipCode = $request->shipping_info?->post_code ?? '';
@@ -99,7 +99,7 @@ class IyzicoGateway extends AbstractGateway
         // Fatura adresi
         $billingAddress = new IyzicoAddress;
         $billingAddress->contactName = $request->invoice_info?->name ?? $request->sale_info->card_name_surname;
-        $billingAddress->city = $request->invoice_info?->city ?? '';
+        $billingAddress->city = $request->invoice_info?->city_name ?? '';
         $billingAddress->country = $request->invoice_info?->country?->name ?? 'Turkey';
         $billingAddress->address = $request->invoice_info?->address_description ?? '';
         $billingAddress->zipCode = $request->invoice_info?->post_code ?? '';
@@ -114,13 +114,18 @@ class IyzicoGateway extends AbstractGateway
         $basketItem->price = $amount;
         $req->basketItems = [$basketItem];
 
+        // 3D Secure callbackUrl, hash hesaplamadan ÖNCE set edilmeli.
+        // CreatePaymentRequest::toPKIRequestString() callbackUrl'i imza içine dahil eder;
+        // hash hesaplandıktan sonra atanırsa JSON body ile imza uyuşmaz → "Geçersiz imza".
+        if ($request->payment_3d?->confirm === true) {
+            $req->callbackUrl = $request->payment_3d->return_url;
+        }
+
         $options = $this->getOptions($auth);
         $headers = IyzicoHashGenerator::getHttpHeaders($req, $options);
 
         if ($request->payment_3d?->confirm === true) {
             // 3D Secure
-            $req->callbackUrl = $request->payment_3d->return_url;
-
             $result = IyzicoHttpClient::post(
                 $options->baseUrl . '/payment/3dsecure/initialize',
                 $headers,
